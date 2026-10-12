@@ -7,6 +7,7 @@ import Login from "./pages/Login.jsx";
 import Home from "./pages/Home.jsx";
 import Users from "./pages/Users.jsx";
 import Session from "./pages/Session.jsx";
+import Sessions from "./pages/Sessions.jsx";
 
 export default function App() {
   return (
@@ -36,6 +37,14 @@ export default function App() {
         element={
           <RequireAuth adminOnly>
             <Users />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/sessions"
+        element={
+          <RequireAuth adminOnly>
+            <Sessions />
           </RequireAuth>
         }
       />

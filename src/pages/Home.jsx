@@ -26,13 +26,22 @@ export default function Home() {
             Report session
           </button>
           {admin ? (
-            <button
-              type="button"
-              className="btn btn--block btn--large"
-              onClick={() => navigate("/users")}
-            >
-              Manage users
-            </button>
+            <>
+              <button
+                type="button"
+                className="btn btn--block btn--large"
+                onClick={() => navigate("/users")}
+              >
+                Manage users
+              </button>
+              <button
+                type="button"
+                className="btn btn--block btn--large"
+                onClick={() => navigate("/sessions")}
+              >
+                Review sessions
+              </button>
+            </>
           ) : null}
         </div>
       </div>

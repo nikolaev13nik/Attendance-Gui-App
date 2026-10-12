@@ -29,3 +29,39 @@ export function closeSession({ tenantId, idUser, token, at = new Date() }) {
     },
   );
 }
+
+export function getSessions({ tenantId, idUser, startDate, endDate, token }) {
+  const query = new URLSearchParams({ startDate, endDate, idUser: String(idUser) });
+  return request(`/attendance/sessions/tenant/${encodeURIComponent(tenantId)}?${query}`, {
+    token,
+    messages: { 400: "Check the dates and the selected employee." },
+  });
+}
+
+export function checkIncomplete({ tenantId, idUser, startDate, endDate, token }) {
+  const query = new URLSearchParams({ startDate, endDate });
+  return request(
+    `/attendance/check/tenant/${encodeURIComponent(tenantId)}/user/${encodeURIComponent(idUser)}?${query}`,
+    { token, messages: { 400: "Check the dates and the selected employee." } },
+  );
+}
+
+export function changeSession({ tenantId, id, openSessionDate, closeSessionDate, token }) {
+  return request(`/attendance/sessionChange/tenant/${encodeURIComponent(tenantId)}`, {
+    method: "POST",
+    token,
+    body: { id, openSessionDate, closeSessionDate },
+    messages: { 404: "That session no longer exists. Reload the list." },
+  });
+}
+
+export function removeSession({ tenantId, id, token }) {
+  return request(
+    `/attendance/sessionRemove/tenant/${encodeURIComponent(tenantId)}/session/${encodeURIComponent(id)}`,
+    {
+      method: "DELETE",
+      token,
+      messages: { 404: "That session no longer exists. Reload the list." },
+    },
+  );
+}
