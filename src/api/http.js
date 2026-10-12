@@ -1,20 +1,26 @@
 export class ApiError extends Error {
-  constructor(status, message, serverMessage, body) {
+  constructor(status, message, serverMessage, body, unreachable = false) {
     super(message);
     this.name = "ApiError";
     this.status = status;
     this.serverMessage = serverMessage;
     this.body = body;
+    this.unreachable = unreachable;
   }
 }
 
+const UNREACHABLE_MESSAGE =
+  "Cannot reach the backend services. The Docker stack is probably stopped or still starting — " +
+  "check it with: docker compose ps";
+
+const OFFLINE_MESSAGE = "Cannot reach the app. The dev server may have stopped — restart it with: npm run dev";
+
 const GENERIC_MESSAGES = {
-  0: "Cannot reach the server. Check that the Docker stack is running.",
   400: "The server rejected that request.",
   401: "You are not signed in, or your session has expired.",
   403: "Your role does not allow that action.",
+  404: "That item no longer exists.",
   409: "That already exists.",
-  500: "The server failed to handle that request.",
 };
 
 function serverMessageOf(payload) {
@@ -22,22 +28,22 @@ function serverMessageOf(payload) {
   return raw || null;
 }
 
-function messageFor(status, serverMessage, overrides) {
-  if (overrides && overrides[status]) {
-    return overrides[status];
+function looksUnreachable(status, payload) {
+  if (status === 502 || status === 503 || status === 504) {
+    return true;
   }
-  return serverMessage || GENERIC_MESSAGES[status] || `Request failed with status ${status}.`;
+  return status === 500 && payload === null;
 }
 
 async function readBody(response) {
   const text = await response.text();
-  if (!text) {
+  if (!text.trim()) {
     return null;
   }
   try {
     return JSON.parse(text);
   } catch {
-    return { message: text };
+    return { message: text.trim() };
   }
 }
 
@@ -59,13 +65,25 @@ export async function request(path, options = {}) {
       body: body === undefined ? undefined : JSON.stringify(body),
     });
   } catch {
-    throw new ApiError(0, messageFor(0, null, messages), null, null);
+    throw new ApiError(0, OFFLINE_MESSAGE, null, null, true);
+  }
+
+  if (response.ok) {
+    return readBody(response);
   }
 
   const payload = await readBody(response);
-  if (!response.ok) {
-    const serverMessage = serverMessageOf(payload);
-    throw new ApiError(response.status, messageFor(response.status, serverMessage, messages), serverMessage, payload);
+  const serverMessage = serverMessageOf(payload);
+
+  if (looksUnreachable(response.status, payload)) {
+    throw new ApiError(response.status, UNREACHABLE_MESSAGE, serverMessage, payload, true);
   }
-  return payload;
+
+  const message =
+    (messages && messages[response.status]) ||
+    serverMessage ||
+    GENERIC_MESSAGES[response.status] ||
+    `The server returned an unexpected status ${response.status}.`;
+
+  throw new ApiError(response.status, message, serverMessage, payload, false);
 }
