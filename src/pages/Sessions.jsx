@@ -193,7 +193,7 @@ export default function Sessions() {
               Back
             </button>
             <button type="button" className="btn btn--primary" onClick={() => setRecording(true)}>
-              Record a session
+              Add new session
             </button>
           </div>
         </div>
@@ -318,7 +318,7 @@ export default function Sessions() {
 
       {recording ? (
         <Modal
-          title="Record a session"
+          title="Add new session"
           onClose={() => setRecording(false)}
           actions={
             <>
@@ -326,7 +326,7 @@ export default function Sessions() {
                 Cancel
               </button>
               <button type="submit" form="record-session" className="btn btn--primary" disabled={busy !== null}>
-                {busy === "record" ? "Recording…" : "Record"}
+                {busy === "record" ? "Adding…" : "Add session"}
               </button>
             </>
           }

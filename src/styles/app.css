@@ -42,19 +42,8 @@ body {
   min-height: 100vh;
   color: var(--text);
   font-family: "Noto Serif", Georgia, serif;
-  background-image: url("../assets/background.jpg");
-  background-size: cover;
+  background: radial-gradient(ellipse at 32% 38%, #ffffff 0%, #f6f7f9 42%, #e3e5e9 72%, #d2d5db 100%);
   background-attachment: fixed;
-  background-position: center;
-}
-
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background: #ffffff;
-  opacity: 0.72;
-  z-index: -1;
 }
 
 h1,
@@ -82,12 +71,6 @@ a {
   align-items: center;
   gap: 0.85rem;
   flex-wrap: wrap;
-}
-
-.header__logo {
-  height: 40px;
-  width: auto;
-  display: block;
 }
 
 .header__org {
@@ -415,4 +398,10 @@ a {
   .header__org {
     font-size: 1.1rem;
   }
+}
+
+textarea.field__input {
+  resize: vertical;
+  min-height: 8rem;
+  line-height: 1.45;
 }

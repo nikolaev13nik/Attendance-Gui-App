@@ -25,6 +25,7 @@ export default function Users() {
   const [editing, setEditing] = useState(null);
   const [editForm, setEditForm] = useState({ firstName: "", lastName: "", email: "", password: "" });
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [confirmRole, setConfirmRole] = useState(null);
 
   const refresh = useCallback(async () => {
     setFailure(null);
@@ -203,38 +204,15 @@ export default function Users() {
                         >
                           Edit
                         </button>
-                        {admin ? (
-                          <button
-                            type="button"
-                            className="btn btn--link"
-                            disabled={self || busy !== null}
-                            title={self ? "You cannot remove your own administrator role" : undefined}
-                            onClick={() =>
-                              act(
-                                "role",
-                                () => removeRole({ idUser: user.idUser, role: ADMINISTRATOR, token }),
-                                `User ${user.idUser} is no longer an administrator.`,
-                              )
-                            }
-                          >
-                            Revoke admin
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            className="btn btn--link"
-                            disabled={busy !== null}
-                            onClick={() =>
-                              act(
-                                "role",
-                                () => addRole({ idUser: user.idUser, role: ADMINISTRATOR, token }),
-                                `User ${user.idUser} is now an administrator.`,
-                              )
-                            }
-                          >
-                            Grant admin
-                          </button>
-                        )}
+                        <button
+                          type="button"
+                          className="btn btn--link"
+                          disabled={(admin && self) || busy !== null}
+                          title={admin && self ? "You cannot remove your own administrator role" : undefined}
+                          onClick={() => setConfirmRole({ user, grant: !admin })}
+                        >
+                          {admin ? "Revoke admin" : "Grant admin"}
+                        </button>
                         <button
                           type="button"
                           className="btn btn--link"
@@ -336,6 +314,48 @@ export default function Users() {
               autoComplete="new-password"
             />
           </form>
+        </Modal>
+      ) : null}
+
+
+      {confirmRole ? (
+        <Modal
+          title={confirmRole.grant ? "Grant administrator" : "Revoke administrator"}
+          onClose={() => setConfirmRole(null)}
+          actions={
+            <>
+              <button type="button" className="btn" onClick={() => setConfirmRole(null)}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                className={confirmRole.grant ? "btn btn--primary" : "btn btn--danger"}
+                disabled={busy !== null}
+                onClick={async () => {
+                  const { user, grant } = confirmRole;
+                  setConfirmRole(null);
+                  await act(
+                    "role",
+                    () =>
+                      grant
+                        ? addRole({ idUser: user.idUser, role: ADMINISTRATOR, token })
+                        : removeRole({ idUser: user.idUser, role: ADMINISTRATOR, token }),
+                    grant
+                      ? `User ${user.idUser} is now an administrator.`
+                      : `User ${user.idUser} is no longer an administrator.`,
+                  );
+                }}
+              >
+                {busy === "role" ? "Saving…" : confirmRole.grant ? "Grant admin" : "Revoke admin"}
+              </button>
+            </>
+          }
+        >
+          <p style={{ marginTop: 0 }}>
+            {confirmRole.grant
+              ? `Give ${displayName(confirmRole.user)} (ID ${confirmRole.user.idUser}) administrator rights? They will be able to manage every user and every session in this organization.`
+              : `Remove administrator rights from ${displayName(confirmRole.user)} (ID ${confirmRole.user.idUser})? They will keep their account and can still record their own sessions.`}
+          </p>
         </Modal>
       ) : null}
 

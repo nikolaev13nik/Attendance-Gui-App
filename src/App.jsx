@@ -8,6 +8,7 @@ import Home from "./pages/Home.jsx";
 import Users from "./pages/Users.jsx";
 import Session from "./pages/Session.jsx";
 import Sessions from "./pages/Sessions.jsx";
+import LeaveDays from "./pages/LeaveDays.jsx";
 
 export default function App() {
   return (
@@ -45,6 +46,14 @@ export default function App() {
         element={
           <RequireAuth adminOnly>
             <Sessions />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/leave-days"
+        element={
+          <RequireAuth adminOnly>
+            <LeaveDays />
           </RequireAuth>
         }
       />

@@ -41,6 +41,13 @@ export default function Home() {
               >
                 Review sessions
               </button>
+              <button
+                type="button"
+                className="btn btn--block btn--large"
+                onClick={() => navigate("/leave-days")}
+              >
+                Report leave days
+              </button>
             </>
           ) : null}
         </div>

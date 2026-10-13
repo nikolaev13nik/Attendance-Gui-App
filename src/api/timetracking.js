@@ -65,3 +65,14 @@ export function removeSession({ tenantId, id, token }) {
     },
   );
 }
+
+export function addLeaveDays({ tenantId, idUser, days, token }) {
+  return request(
+    `/attendance/addLeaveDays/tenant/${encodeURIComponent(tenantId)}/userId/${encodeURIComponent(idUser)}`,
+    {
+      method: "POST",
+      token,
+      body: { days },
+    },
+  );
+}
