@@ -125,6 +125,8 @@ export default function Users() {
   const updateCreate = update(setCreateForm);
   const updateEdit = update(setEditForm);
 
+  const modalOpen = Boolean(creating || editing || confirmRole || confirmDelete);
+
   return (
     <Layout>
       <div className="card">
@@ -141,13 +143,20 @@ export default function Users() {
             <button type="button" className="btn" onClick={() => navigate("/home")}>
               Back
             </button>
-            <button type="button" className="btn btn--primary" onClick={() => setCreating(true)}>
+            <button
+              type="button"
+              className="btn btn--primary"
+              onClick={() => {
+                setFailure(null);
+                setCreating(true);
+              }}
+            >
               Add user
             </button>
           </div>
         </div>
 
-        <Notice kind="error">{failure}</Notice>
+        {modalOpen ? null : <Notice kind="error">{failure}</Notice>}
         <Notice kind="success">{success}</Notice>
 
         {users === null ? (
@@ -193,6 +202,7 @@ export default function Users() {
                           type="button"
                           className="btn btn--link"
                           onClick={() => {
+                            setFailure(null);
                             setEditing(user);
                             setEditForm({
                               firstName: user.firstName || "",
@@ -247,6 +257,7 @@ export default function Users() {
             </>
           }
         >
+          <Notice kind="error">{failure}</Notice>
           <p className="card__hint">
             New users receive the standard role. Grant administrator from the table afterwards if needed.
           </p>
@@ -299,6 +310,7 @@ export default function Users() {
             </>
           }
         >
+          <Notice kind="error">{failure}</Notice>
           <form id="edit-user" onSubmit={submitEdit} noValidate>
             <div className="grid-2">
               <Field label="First name" value={editForm.firstName} onChange={updateEdit("firstName")} autoFocus />

@@ -87,6 +87,7 @@ export default function Sessions() {
   }
 
   function openEdit(row) {
+    setFailure(null);
     setEditing(row);
     setEditErrors({});
     setEditForm({ open: toTimeInput(row.openSessionDate), close: toTimeInput(row.closeSessionDate) });
@@ -175,6 +176,7 @@ export default function Sessions() {
   const updateRecord = (key) => (event) => setRecordForm((prev) => ({ ...prev, [key]: event.target.value }));
 
   const selectedUser = users.find((user) => String(user.idUser) === filters.idUser);
+  const modalOpen = Boolean(editing || recording || confirmRemove);
 
   return (
     <Layout>
@@ -192,7 +194,14 @@ export default function Sessions() {
             <button type="button" className="btn" onClick={() => navigate("/home")}>
               Back
             </button>
-            <button type="button" className="btn btn--primary" onClick={() => setRecording(true)}>
+            <button
+              type="button"
+              className="btn btn--primary"
+              onClick={() => {
+                setFailure(null);
+                setRecording(true);
+              }}
+            >
               Add new session
             </button>
           </div>
@@ -220,7 +229,7 @@ export default function Sessions() {
           <Field label="To" type="date" value={filters.endDate} onChange={updateFilter("endDate")} />
         </div>
 
-        <Notice kind="error">{failure}</Notice>
+        {modalOpen ? null : <Notice kind="error">{failure}</Notice>}
         <Notice kind="success">{success}</Notice>
         {incompleteIds.size > 0 ? (
           <Notice kind="error">
@@ -294,6 +303,7 @@ export default function Sessions() {
             </>
           }
         >
+          <Notice kind="error">{failure}</Notice>
           <p className="card__hint">Work date {editing.workDate}. Times are in your local timezone.</p>
           <form id="edit-session" onSubmit={submitEdit} noValidate>
             <div className="grid-2">
@@ -335,6 +345,7 @@ export default function Sessions() {
             For {selectedUser ? displayName(selectedUser) : "the selected employee"}. As an administrator
             you may record earlier days; future dates are refused.
           </p>
+          <Notice kind="error">{failure}</Notice>
           <form id="record-session" onSubmit={submitRecord} noValidate>
             <Field
               label="Work date"
