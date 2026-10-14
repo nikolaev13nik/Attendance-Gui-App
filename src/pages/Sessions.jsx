@@ -42,6 +42,7 @@ export default function Sessions() {
   const [rows, setRows] = useState(null);
   const [leave, setLeave] = useState([]);
   const [sortDesc, setSortDesc] = useState(true);
+  const [startDesc, setStartDesc] = useState(false);
   const [incompleteIds, setIncompleteIds] = useState(new Set());
   const [failure, setFailure] = useState(null);
   const [success, setSuccess] = useState(null);
@@ -284,7 +285,7 @@ export default function Sessions() {
 
   const selectedUser = users.find((user) => String(user.idUser) === filters.idUser);
 
-  const entries = leaveEntries(rows, leave, sortDesc);
+  const entries = leaveEntries(rows, leave, sortDesc, startDesc);
   const editingLeave = Boolean(editing && editing.kind === "leave");
   const modalOpen = Boolean(editing || recording || recordingLeave || confirmRemove);
 
@@ -401,7 +402,9 @@ export default function Sessions() {
             leave={leave}
             incompleteIds={incompleteIds}
             sortDesc={sortDesc}
+            startDesc={startDesc}
             onToggleSort={() => setSortDesc((d) => !d)}
+            onToggleStartSort={() => setStartDesc((d) => !d)}
             actions={admin ? rowActions : undefined}
           />
         )}

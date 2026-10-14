@@ -28,6 +28,8 @@ export default function LeaveDays() {
   const [recorded, setRecorded] = useState(null);
   const [recordedLeave, setRecordedLeave] = useState([]);
   const [historyFailure, setHistoryFailure] = useState(null);
+  const [sortDesc, setSortDesc] = useState(true);
+  const [startDesc, setStartDesc] = useState(false);
 
   useEffect(() => {
     listUsers({ tenantId, token })
@@ -256,10 +258,17 @@ export default function LeaveDays() {
 
         {recorded === null ? (
           <p className="spinner">Loading…</p>
-        ) : leaveEntries(recorded, recordedLeave, true).length === 0 ? (
+        ) : leaveEntries(recorded, recordedLeave, sortDesc, startDesc).length === 0 ? (
           <p className="spinner">Nothing recorded in that range.</p>
         ) : (
-          <SessionTable sessions={recorded} leave={recordedLeave} />
+          <SessionTable
+            sessions={recorded}
+            leave={recordedLeave}
+            sortDesc={sortDesc}
+            startDesc={startDesc}
+            onToggleSort={() => setSortDesc((d) => !d)}
+            onToggleStartSort={() => setStartDesc((d) => !d)}
+          />
         )}
       </div>
     </Layout>

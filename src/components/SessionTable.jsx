@@ -6,12 +6,37 @@ export const LEAVE_AMOUNTS = [
   { value: "1", label: "full day" },
 ];
 
-export function leaveEntries(sessions, leave, sortDesc) {
-  const direction = sortDesc ? -1 : 1;
+function startedAt(isoString) {
+  if (!isoString) {
+    return null;
+  }
+  const parsed = new Date(isoString).getTime();
+  return Number.isNaN(parsed) ? null : parsed;
+}
+
+export function leaveEntries(sessions, leave, sortDesc, startDesc = sortDesc) {
+  const dateDirection = sortDesc ? -1 : 1;
+  const startDirection = startDesc ? -1 : 1;
   return [
-    ...(sessions || []).map((row) => ({ kind: "session", date: row.workDate, row })),
-    ...(leave || []).map((day) => ({ kind: "leave", date: day.date, row: day })),
-  ].sort((a, b) => (a.date === b.date ? 0 : (a.date < b.date ? -1 : 1) * direction));
+    ...(sessions || []).map((row) => ({
+      kind: "session",
+      date: row.workDate,
+      start: startedAt(row.openSessionDate),
+      row,
+    })),
+    ...(leave || []).map((day) => ({ kind: "leave", date: day.date, start: null, row: day })),
+  ].sort((a, b) => {
+    // date is always the primary key; Start only decides the order within one date
+    if (a.date !== b.date) {
+      return (a.date < b.date ? -1 : 1) * dateDirection;
+    }
+    // a leave day has no start, and an unopened session has lost its own, so both sit after the
+    // sessions they share a date with whichever way either column is pointing
+    if (a.start === null || b.start === null) {
+      return a.start === b.start ? 0 : a.start === null ? 1 : -1;
+    }
+    return a.start === b.start ? 0 : (a.start < b.start ? -1 : 1) * startDirection;
+  });
 }
 
 function portion(amount) {
@@ -26,10 +51,12 @@ export default function SessionTable({
   leave,
   incompleteIds,
   sortDesc = true,
+  startDesc = sortDesc,
   onToggleSort,
+  onToggleStartSort,
   actions,
 }) {
-  const entries = leaveEntries(sessions, leave, sortDesc);
+  const entries = leaveEntries(sessions, leave, sortDesc, startDesc);
   const needsFixing = incompleteIds || new Set();
 
   return (
@@ -46,7 +73,15 @@ export default function SessionTable({
               "Date"
             )}
           </th>
-          <th>Start</th>
+          <th>
+            {onToggleStartSort ? (
+              <button type="button" className="btn btn--link" onClick={onToggleStartSort}>
+                Start {startDesc ? "\u2193" : "\u2191"}
+              </button>
+            ) : (
+              "Start"
+            )}
+          </th>
           <th>End</th>
           <th>Sickness</th>
           <th>Vacation</th>

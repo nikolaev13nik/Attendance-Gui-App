@@ -56,6 +56,8 @@ export default function Session() {
   const [rows, setRows] = useState(null);
   const [leave, setLeave] = useState([]);
   const [historyFailure, setHistoryFailure] = useState(null);
+  const [sortDesc, setSortDesc] = useState(true);
+  const [startDesc, setStartDesc] = useState(false);
 
   useEffect(() => {
     setRecord(readRecord(key));
@@ -102,7 +104,7 @@ export default function Session() {
   const openedAt = formatTime(record?.openSessionDate);
   const closedAt = formatTime(record?.closeSessionDate);
   const updateRange = (field) => (event) => setRange((prev) => ({ ...prev, [field]: event.target.value }));
-  const entries = leaveEntries(rows, leave, true);
+  const entries = leaveEntries(rows, leave, sortDesc, startDesc);
 
   return (
     <Layout>
@@ -204,7 +206,14 @@ export default function Session() {
         ) : entries.length === 0 ? (
           <p className="spinner">Nothing recorded for you in that range.</p>
         ) : (
-          <SessionTable sessions={rows} leave={leave} />
+          <SessionTable
+            sessions={rows}
+            leave={leave}
+            sortDesc={sortDesc}
+            startDesc={startDesc}
+            onToggleSort={() => setSortDesc((d) => !d)}
+            onToggleStartSort={() => setStartDesc((d) => !d)}
+          />
         )}
       </div>
     </Layout>
