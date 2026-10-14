@@ -9,13 +9,14 @@ import {
   changeSession,
   checkIncomplete,
   closeSession,
+  getLeaveDays,
   getSessions,
   openSession,
   removeSession,
 } from "../api/timetracking.js";
 import { daysAgo, formatTime, localWorkDate, timestampOn, toTimeInput } from "../api/time.js";
 import { useAuth } from "../auth/AuthContext.jsx";
-import { displayName } from "../auth/roles.js";
+import { displayName, isAdministrator } from "../auth/roles.js";
 
 const TIME_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
@@ -23,6 +24,7 @@ export default function Sessions() {
   const navigate = useNavigate();
   const { token, profile } = useAuth();
   const tenantId = profile.tenantId;
+  const admin = isAdministrator(profile);
   const today = localWorkDate();
 
   const [users, setUsers] = useState([]);
@@ -32,6 +34,8 @@ export default function Sessions() {
     endDate: today,
   });
   const [rows, setRows] = useState(null);
+  const [leave, setLeave] = useState([]);
+  const [sortDesc, setSortDesc] = useState(true);
   const [incompleteIds, setIncompleteIds] = useState(new Set());
   const [failure, setFailure] = useState(null);
   const [success, setSuccess] = useState(null);
@@ -45,22 +49,31 @@ export default function Sessions() {
   const [recordErrors, setRecordErrors] = useState({});
 
   useEffect(() => {
+    if (!admin) {
+      return;
+    }
     listUsers({ tenantId, token })
       .then((list) => setUsers(list || []))
       .catch((error) => setFailure(error.message));
-  }, [tenantId, token]);
+  }, [admin, tenantId, token]);
 
   const load = useCallback(async () => {
     setFailure(null);
     setRows(null);
     const query = { tenantId, token, idUser: Number(filters.idUser), startDate: filters.startDate, endDate: filters.endDate };
     try {
-      const [sessions, incomplete] = await Promise.all([getSessions(query), checkIncomplete(query)]);
+      const [sessions, incomplete, leaveDays] = await Promise.all([
+        getSessions(query),
+        checkIncomplete(query),
+        getLeaveDays(query),
+      ]);
       setRows(sessions || []);
+      setLeave(leaveDays || []);
       setIncompleteIds(new Set((incomplete || []).map((row) => row.id)));
     } catch (error) {
       setFailure(error.message);
       setRows([]);
+      setLeave([]);
       setIncompleteIds(new Set());
     }
   }, [filters, tenantId, token]);
@@ -176,6 +189,11 @@ export default function Sessions() {
   const updateRecord = (key) => (event) => setRecordForm((prev) => ({ ...prev, [key]: event.target.value }));
 
   const selectedUser = users.find((user) => String(user.idUser) === filters.idUser);
+
+  const entries = [
+    ...(rows || []).map((row) => ({ kind: "session", date: row.workDate, row })),
+    ...leave.map((day) => ({ kind: "leave", date: day.date, row: day })),
+  ].sort((a, b) => (a.date === b.date ? 0 : (a.date < b.date ? -1 : 1) * (sortDesc ? -1 : 1)));
   const modalOpen = Boolean(editing || recording || confirmRemove);
 
   return (
@@ -184,47 +202,51 @@ export default function Sessions() {
         <div className="row row--split" style={{ marginBottom: "0.75rem" }}>
           <div>
             <h1 className="card__title" style={{ marginBottom: 0 }}>
-              Sessions
+              {admin ? "Sessions" : "My sessions"}
             </h1>
             <p className="card__hint" style={{ marginBottom: 0 }}>
-              Review and correct recorded work sessions.
+              {admin ? "Review and correct recorded work sessions." : "Your recorded sessions and leave days."}
             </p>
           </div>
           <div className="row">
             <button type="button" className="btn" onClick={() => navigate("/home")}>
               Back
             </button>
-            <button
-              type="button"
-              className="btn btn--primary"
-              onClick={() => {
-                setFailure(null);
-                setRecording(true);
-              }}
-            >
-              Add new session
-            </button>
+            {admin ? (
+              <button
+                type="button"
+                className="btn btn--primary"
+                onClick={() => {
+                  setFailure(null);
+                  setRecording(true);
+                }}
+              >
+                Add new session
+              </button>
+            ) : null}
           </div>
         </div>
 
         <div className="row" style={{ alignItems: "flex-end", marginBottom: "1rem" }}>
-          <div className="field" style={{ marginBottom: 0, minWidth: "14rem" }}>
-            <label className="field__label" htmlFor="filter-user">
-              Employee
-            </label>
-            <select
-              id="filter-user"
-              className="field__input"
-              value={filters.idUser}
-              onChange={updateFilter("idUser")}
-            >
-              {users.map((user) => (
-                <option key={user.idUser} value={String(user.idUser)}>
-                  {displayName(user)} ({user.idUser})
-                </option>
-              ))}
-            </select>
-          </div>
+          {admin ? (
+            <div className="field" style={{ marginBottom: 0, minWidth: "14rem" }}>
+              <label className="field__label" htmlFor="filter-user">
+                Employee
+              </label>
+              <select
+                id="filter-user"
+                className="field__input"
+                value={filters.idUser}
+                onChange={updateFilter("idUser")}
+              >
+                {users.map((user) => (
+                  <option key={user.idUser} value={String(user.idUser)}>
+                    {displayName(user)} ({user.idUser})
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : null}
           <Field label="From" type="date" value={filters.startDate} onChange={updateFilter("startDate")} />
           <Field label="To" type="date" value={filters.endDate} onChange={updateFilter("endDate")} />
         </div>
@@ -240,49 +262,71 @@ export default function Sessions() {
 
         {rows === null ? (
           <p className="spinner">Loading…</p>
-        ) : rows.length === 0 ? (
+        ) : entries.length === 0 ? (
           <p className="spinner">
-            No sessions for {selectedUser ? displayName(selectedUser) : "this employee"} in that range.
+            Nothing recorded for {admin && selectedUser ? displayName(selectedUser) : "you"} in that range.
           </p>
         ) : (
           <table className="table">
             <thead>
               <tr>
-                <th>ID</th>
-                <th>Work date</th>
+                <th>Type</th>
+                <th>
+                  <button type="button" className="btn btn--link" onClick={() => setSortDesc((d) => !d)}>
+                    Date {sortDesc ? "\u2193" : "\u2191"}
+                  </button>
+                </th>
                 <th>Start</th>
                 <th>End</th>
                 <th aria-label="Actions" />
               </tr>
             </thead>
             <tbody>
-              {rows.map((row) => {
-                const incomplete = incompleteIds.has(row.id);
-                return (
-                  <tr key={row.id}>
-                    <td>{row.id}</td>
-                    <td>{row.workDate}</td>
-                    <td>{formatTime(row.openSessionDate) || <span className="tag">missing</span>}</td>
-                    <td>{formatTime(row.closeSessionDate) || <span className="tag">missing</span>}</td>
+              {entries.map((entry) =>
+                entry.kind === "leave" ? (
+                  <tr key={`leave-${entry.row.date}-${entry.row.leaveType}`}>
+                    <td>
+                      <span className="tag">
+                        {entry.row.leaveType === "SICK" ? "sick" : "vacation"}
+                        {entry.row.amount === 0.5 ? " \u00bd" : ""}
+                      </span>
+                    </td>
+                    <td>{entry.row.date}</td>
+                    <td>&mdash;</td>
+                    <td>&mdash;</td>
+                    <td />
+                  </tr>
+                ) : (
+                  <tr key={`session-${entry.row.id}`}>
+                    <td>session</td>
+                    <td>{entry.row.workDate}</td>
+                    <td>{formatTime(entry.row.openSessionDate) || <span className="tag">missing</span>}</td>
+                    <td>{formatTime(entry.row.closeSessionDate) || <span className="tag">missing</span>}</td>
                     <td>
                       <div className="table__actions">
-                        {incomplete ? <span className="tag tag--admin">needs fixing</span> : null}
-                        <button type="button" className="btn btn--link" onClick={() => openEdit(row)}>
-                          Edit
-                        </button>
-                        <button
-                          type="button"
-                          className="btn btn--link"
-                          disabled={busy !== null}
-                          onClick={() => setConfirmRemove(row)}
-                        >
-                          Delete
-                        </button>
+                        {incompleteIds.has(entry.row.id) ? (
+                          <span className="tag tag--admin">needs fixing</span>
+                        ) : null}
+                        {admin ? (
+                          <>
+                            <button type="button" className="btn btn--link" onClick={() => openEdit(entry.row)}>
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn--link"
+                              disabled={busy !== null}
+                              onClick={() => setConfirmRemove(entry.row)}
+                            >
+                              Delete
+                            </button>
+                          </>
+                        ) : null}
                       </div>
                     </td>
                   </tr>
-                );
-              })}
+                ),
+              )}
             </tbody>
           </table>
         )}

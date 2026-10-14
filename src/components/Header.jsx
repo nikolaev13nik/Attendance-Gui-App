@@ -6,7 +6,7 @@ export default function Header({ orgName }) {
   const { profile, isAuthenticated, signOut } = useAuth();
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const company = orgName || profile?.tenantName || (profile ? `Organization #${profile.tenantId}` : "Attendance");
+  const company = orgName || profile?.companyName || (profile ? `Organization #${profile.tenantId}` : "Attendance");
 
   return (
     <header className="header">

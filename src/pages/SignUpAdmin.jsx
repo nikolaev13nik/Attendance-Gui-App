@@ -10,7 +10,7 @@ export default function SignUpAdmin() {
   const navigate = useNavigate();
   const { state } = useLocation();
   const tenantId = state?.tenantId;
-  const tenantName = state?.tenantName;
+  const companyName = state?.companyName;
 
   const [form, setForm] = useState({ idUser: "", firstName: "", lastName: "", email: "", password: "" });
   const [errors, setErrors] = useState({});
@@ -66,21 +66,21 @@ export default function SignUpAdmin() {
   if (created) {
     const admin = isAdministrator(created);
     return (
-      <Layout orgName={tenantName}>
+      <Layout orgName={companyName}>
         <div className="card card--narrow">
           <h1 className="card__title">Organization ready</h1>
           <Notice kind={admin ? "success" : "error"}>
             {admin
-              ? `${tenantName} is set up, and user ${created.idUser} is its administrator.`
+              ? `${companyName} is set up, and user ${created.idUser} is its administrator.`
               : `User ${created.idUser} was created but did not receive the administrator role. An existing administrator will have to grant it.`}
           </Notice>
           <div className="clock__state">
             <dl>
               <dt>Organization</dt>
               <dd>
-                {tenantName} (ID {tenantId})
+                {companyName} (ID {tenantId})
               </dd>
-              <dt>User ID</dt>
+              <dt>ID number</dt>
               <dd>{created.idUser}</dd>
               <dt>Roles granted</dt>
               <dd>
@@ -96,12 +96,12 @@ export default function SignUpAdmin() {
             </dl>
           </div>
           <p className="card__hint">
-            Sign in with the organization ID, the user ID and the password you just chose.
+            Sign in with the company name, that ID number and the password you just chose.
           </p>
           <button
             type="button"
             className="btn btn--primary btn--block"
-            onClick={() => navigate("/login", { state: { tenantId, idUser: created.idUser } })}
+            onClick={() => navigate("/login", { state: { companyName, idUser: created.idUser } })}
           >
             Continue to log in
           </button>
@@ -111,24 +111,23 @@ export default function SignUpAdmin() {
   }
 
   return (
-    <Layout orgName={tenantName}>
+    <Layout orgName={companyName}>
       <div className="card card--narrow">
         <h1 className="card__title">Step 2 of 2 — the administrator</h1>
         <p className="card__hint">
-          This is the first user of {tenantName}, so it is granted the administrator role automatically.
-          The user ID is a number you choose, and it is what you sign in with.
+          This is the first user of {companyName}, so it is granted the administrator role automatically.
         </p>
         <Notice kind="error">{failure}</Notice>
         <form onSubmit={submit} noValidate>
           <Field
-            label="User ID"
+            label="ID number"
             type="number"
             min="1"
             step="1"
             value={form.idUser}
             onChange={update("idUser")}
             error={errors.idUser}
-            hint="A whole number, for example 555000222."
+            hint="The person's national ID number. This is what they sign in with."
             autoFocus
           />
           <div className="grid-2">

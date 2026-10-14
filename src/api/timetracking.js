@@ -76,3 +76,11 @@ export function addLeaveDays({ tenantId, idUser, days, token }) {
     },
   );
 }
+
+export function getLeaveDays({ tenantId, idUser, startDate, endDate, token }) {
+  const query = new URLSearchParams({ startDate, endDate });
+  return request(
+    `/attendance/leaveDays/tenant/${encodeURIComponent(tenantId)}/userId/${encodeURIComponent(idUser)}?${query}`,
+    { token, messages: { 400: "Check the dates and the selected employee." } },
+  );
+}

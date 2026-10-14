@@ -25,30 +25,28 @@ export default function Home() {
           >
             Report session
           </button>
+          <button
+            type="button"
+            className="btn btn--block btn--large"
+            onClick={() => navigate("/sessions")}
+          >
+            {admin ? "Review sessions" : "My sessions"}
+          </button>
+          <button
+            type="button"
+            className="btn btn--block btn--large"
+            onClick={() => navigate("/leave-days")}
+          >
+            Report leave days
+          </button>
           {admin ? (
-            <>
-              <button
-                type="button"
-                className="btn btn--block btn--large"
-                onClick={() => navigate("/users")}
-              >
-                Manage users
-              </button>
-              <button
-                type="button"
-                className="btn btn--block btn--large"
-                onClick={() => navigate("/sessions")}
-              >
-                Review sessions
-              </button>
-              <button
-                type="button"
-                className="btn btn--block btn--large"
-                onClick={() => navigate("/leave-days")}
-              >
-                Report leave days
-              </button>
-            </>
+            <button
+              type="button"
+              className="btn btn--block btn--large"
+              onClick={() => navigate("/users")}
+            >
+              Manage users
+            </button>
           ) : null}
         </div>
       </div>

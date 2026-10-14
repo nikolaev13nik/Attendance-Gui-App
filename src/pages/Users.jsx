@@ -167,7 +167,7 @@ export default function Users() {
           <table className="table">
             <thead>
               <tr>
-                <th>User ID</th>
+                <th>ID number</th>
                 <th>Name</th>
                 <th>Email</th>
                 <th>Roles</th>
@@ -263,13 +263,14 @@ export default function Users() {
           </p>
           <form id="create-user" onSubmit={submitCreate} noValidate>
             <Field
-              label="User ID"
+              label="ID number"
               type="number"
               min="1"
               step="1"
               value={createForm.idUser}
               onChange={updateCreate("idUser")}
               error={createErrors.idUser}
+              hint="The person's national ID number. This is what they sign in with."
               autoFocus
             />
             <div className="grid-2">

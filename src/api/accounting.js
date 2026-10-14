@@ -1,11 +1,11 @@
 import { request } from "./http.js";
 
-export function addTenant({ tenantId, tenantName, email }) {
+export function addTenant({ companyName, contactName, phone, email }) {
   return request("/account/tenant/add", {
     method: "POST",
-    body: { tenantId, tenantName, email },
+    body: { companyName, contactName, phone, email },
     messages: {
-      409: "An organization with that ID already exists. Pick a different ID, or sign in instead.",
+      409: "An organization with that name is already registered. Sign in instead, or pick another name.",
     },
   });
 }
@@ -20,12 +20,12 @@ export function registerUser({ idUser, password, email, tenantId, firstName, las
   });
 }
 
-export function login({ idUser, password, tenantId }) {
+export function login({ idUser, password, tenantId, companyName }) {
   return request("/account/login", {
     method: "POST",
-    body: { idUser, password, tenantId },
+    body: { idUser, password, tenantId, companyName },
     messages: {
-      401: "Those details did not match. Check the organization ID, user ID and password.",
+      401: "Those details did not match. Check the organization, user ID and password.",
     },
   });
 }

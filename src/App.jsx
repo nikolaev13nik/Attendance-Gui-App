@@ -44,7 +44,7 @@ export default function App() {
       <Route
         path="/sessions"
         element={
-          <RequireAuth adminOnly>
+          <RequireAuth>
             <Sessions />
           </RequireAuth>
         }
@@ -52,7 +52,7 @@ export default function App() {
       <Route
         path="/leave-days"
         element={
-          <RequireAuth adminOnly>
+          <RequireAuth>
             <LeaveDays />
           </RequireAuth>
         }

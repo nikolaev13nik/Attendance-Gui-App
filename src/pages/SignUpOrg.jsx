@@ -7,7 +7,7 @@ import { addTenant } from "../api/accounting.js";
 
 export default function SignUpOrg() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ tenantName: "", tenantId: "", email: "" });
+  const [form, setForm] = useState({ companyName: "", contactName: "", phone: "", email: "" });
   const [errors, setErrors] = useState({});
   const [failure, setFailure] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -16,11 +16,14 @@ export default function SignUpOrg() {
 
   function validate() {
     const next = {};
-    if (!form.tenantName.trim()) {
-      next.tenantName = "Enter the company name.";
+    if (!form.companyName.trim()) {
+      next.companyName = "Enter the company name.";
     }
-    if (!/^\d+$/.test(form.tenantId) || Number(form.tenantId) < 1) {
-      next.tenantId = "Enter a whole number of 1 or more.";
+    if (!form.contactName.trim()) {
+      next.contactName = "Enter who is responsible for the organization.";
+    }
+    if (!form.phone.trim()) {
+      next.phone = "Enter a contact phone number.";
     }
     if (!/^\S+@\S+\.\S+$/.test(form.email)) {
       next.email = "Enter a valid email address.";
@@ -38,12 +41,13 @@ export default function SignUpOrg() {
     setBusy(true);
     try {
       const tenant = await addTenant({
-        tenantId: Number(form.tenantId),
-        tenantName: form.tenantName.trim(),
+        companyName: form.companyName.trim(),
+        contactName: form.contactName.trim(),
+        phone: form.phone.trim(),
         email: form.email.trim(),
       });
       navigate("/signup/administrator", {
-        state: { tenantId: tenant.tenantId, tenantName: tenant.tenantName },
+        state: { tenantId: tenant.tenantId, companyName: tenant.companyName },
       });
     } catch (error) {
       setFailure(error.message);
@@ -53,32 +57,37 @@ export default function SignUpOrg() {
   }
 
   return (
-    <Layout orgName={form.tenantName.trim() || undefined}>
+    <Layout orgName={form.companyName.trim() || undefined}>
       <div className="card card--narrow">
         <h1 className="card__title">Step 1 of 2 — your organization</h1>
         <p className="card__hint">
-          The company name becomes the heading on every screen. The ID is a number you choose and will
-          need every time you sign in, so keep it memorable.
+          The company name becomes the heading on every screen, and you can sign in with it. Your
+          organization number is assigned for you.
         </p>
         <Notice kind="error">{failure}</Notice>
         <form onSubmit={submit} noValidate>
           <Field
             label="Company name"
-            value={form.tenantName}
-            onChange={update("tenantName")}
-            error={errors.tenantName}
+            value={form.companyName}
+            onChange={update("companyName")}
+            error={errors.companyName}
             autoComplete="organization"
             autoFocus
           />
           <Field
-            label="Organization ID"
-            type="number"
-            min="1"
-            step="1"
-            value={form.tenantId}
-            onChange={update("tenantId")}
-            error={errors.tenantId}
-            hint="A whole number, for example 2."
+            label="Contact name"
+            value={form.contactName}
+            onChange={update("contactName")}
+            error={errors.contactName}
+            autoComplete="name"
+          />
+          <Field
+            label="Phone"
+            type="tel"
+            value={form.phone}
+            onChange={update("phone")}
+            error={errors.phone}
+            autoComplete="tel"
           />
           <Field
             label="Contact email"

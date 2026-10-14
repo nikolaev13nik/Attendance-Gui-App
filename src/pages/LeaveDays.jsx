@@ -7,7 +7,7 @@ import { listUsers } from "../api/accounting.js";
 import { addLeaveDays } from "../api/timetracking.js";
 import { localWorkDate } from "../api/time.js";
 import { useAuth } from "../auth/AuthContext.jsx";
-import { displayName } from "../auth/roles.js";
+import { displayName, isAdministrator } from "../auth/roles.js";
 
 const AMOUNTS = [
   { value: "0", label: "none" },
@@ -21,6 +21,7 @@ export default function LeaveDays() {
   const navigate = useNavigate();
   const { token, profile } = useAuth();
   const tenantId = profile.tenantId;
+  const admin = isAdministrator(profile);
 
   const [users, setUsers] = useState([]);
   const [idUser, setIdUser] = useState(String(profile.idUser));
@@ -31,10 +32,13 @@ export default function LeaveDays() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
+    if (!admin) {
+      return;
+    }
     listUsers({ tenantId, token })
       .then((list) => setUsers(list || []))
       .catch((error) => setFailure(error.message));
-  }, [tenantId, token]);
+  }, [admin, tenantId, token]);
 
   const updateRow = (index, key) => (event) =>
     setRows((prev) => prev.map((row, i) => (i === index ? { ...row, [key]: event.target.value } : row)));
@@ -109,7 +113,7 @@ export default function LeaveDays() {
               Report leave days
             </h1>
             <p className="card__hint" style={{ marginBottom: 0 }}>
-              Record vacation and sick days for an employee.
+              {admin ? "Record vacation and sick days for an employee." : "Record your vacation and sick days."}
             </p>
           </div>
           <button type="button" className="btn" onClick={() => navigate("/home")}>
@@ -126,18 +130,20 @@ export default function LeaveDays() {
         </Notice>
 
         <form onSubmit={submit} noValidate>
-          <Field
-            label="Employee"
-            as="select"
-            value={idUser}
-            onChange={(event) => setIdUser(event.target.value)}
-          >
-            {users.map((user) => (
-              <option key={user.idUser} value={String(user.idUser)}>
-                {displayName(user)} ({user.idUser})
-              </option>
-            ))}
-          </Field>
+          {admin ? (
+            <Field
+              label="Employee"
+              as="select"
+              value={idUser}
+              onChange={(event) => setIdUser(event.target.value)}
+            >
+              {users.map((user) => (
+                <option key={user.idUser} value={String(user.idUser)}>
+                  {displayName(user)} ({user.idUser})
+                </option>
+              ))}
+            </Field>
+          ) : null}
 
           <table className="table" style={{ marginBottom: "0.75rem" }}>
             <thead>

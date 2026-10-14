@@ -45,8 +45,8 @@ export function AuthProvider({ children }) {
     setSession(null);
   }, []);
 
-  const signIn = useCallback(async ({ idUser, password, tenantId }) => {
-    const response = await loginRequest({ idUser, password, tenantId });
+  const signIn = useCallback(async ({ idUser, password, tenantId, companyName }) => {
+    const response = await loginRequest({ idUser, password, tenantId, companyName });
     const next = {
       token: response.token,
       profile: response.profile,

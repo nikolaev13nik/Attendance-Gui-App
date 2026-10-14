@@ -10,8 +10,10 @@ export default function Login() {
   const { state } = useLocation();
   const { signIn, isAuthenticated } = useAuth();
 
+  const [by, setBy] = useState(state?.tenantId != null ? "id" : "name");
   const [form, setForm] = useState({
     tenantId: state?.tenantId != null ? String(state.tenantId) : "",
+    companyName: state?.companyName ?? "",
     idUser: state?.idUser != null ? String(state.idUser) : "",
     password: "",
   });
@@ -25,13 +27,23 @@ export default function Login() {
 
   const update = (key) => (event) => setForm((prev) => ({ ...prev, [key]: event.target.value }));
 
+  function switchTo(next) {
+    setBy(next);
+    setErrors({});
+    setFailure(null);
+  }
+
   function validate() {
     const next = {};
-    if (!/^\d+$/.test(form.tenantId)) {
-      next.tenantId = "Enter the organization ID as a number.";
+    if (by === "id") {
+      if (!/^\d+$/.test(form.tenantId)) {
+        next.tenantId = "Enter the organization ID as a number.";
+      }
+    } else if (!form.companyName.trim()) {
+      next.companyName = "Enter your company name.";
     }
     if (!/^\d+$/.test(form.idUser)) {
-      next.idUser = "Enter your user ID as a number.";
+      next.idUser = "Enter your ID number.";
     }
     if (!form.password) {
       next.password = "Enter your password.";
@@ -51,7 +63,8 @@ export default function Login() {
       await signIn({
         idUser: Number(form.idUser),
         password: form.password,
-        tenantId: Number(form.tenantId),
+        tenantId: by === "id" ? Number(form.tenantId) : undefined,
+        companyName: by === "name" ? form.companyName.trim() : undefined,
       });
       navigate(state?.from || "/home", { replace: true });
     } catch (error) {
@@ -65,27 +78,57 @@ export default function Login() {
     <Layout>
       <div className="card card--narrow">
         <h1 className="card__title">Log in</h1>
-        <p className="card__hint">Use the organization ID and the user ID you were given.</p>
+        <p className="card__hint">Identify your organization by name, or by the number it was given.</p>
         <Notice kind="error">{failure}</Notice>
+
+        <div className="row" style={{ marginBottom: "1rem" }}>
+          <button
+            type="button"
+            className={`btn${by === "name" ? " btn--primary" : ""}`}
+            onClick={() => switchTo("name")}
+          >
+            Company name
+          </button>
+          <button
+            type="button"
+            className={`btn${by === "id" ? " btn--primary" : ""}`}
+            onClick={() => switchTo("id")}
+          >
+            Organization ID
+          </button>
+        </div>
+
         <form onSubmit={submit} noValidate>
+          {by === "name" ? (
+            <Field
+              label="Company name"
+              value={form.companyName}
+              onChange={update("companyName")}
+              error={errors.companyName}
+              autoComplete="organization"
+              autoFocus
+            />
+          ) : (
+            <Field
+              label="Organization ID"
+              type="number"
+              min="0"
+              step="1"
+              value={form.tenantId}
+              onChange={update("tenantId")}
+              error={errors.tenantId}
+              autoFocus
+            />
+          )}
           <Field
-            label="Organization ID"
-            type="number"
-            min="0"
-            step="1"
-            value={form.tenantId}
-            onChange={update("tenantId")}
-            error={errors.tenantId}
-            autoFocus={!form.tenantId}
-          />
-          <Field
-            label="User ID"
+            label="ID number"
             type="number"
             min="1"
             step="1"
             value={form.idUser}
             onChange={update("idUser")}
             error={errors.idUser}
+            hint="Your national ID number."
             autoComplete="username"
           />
           <Field
@@ -95,7 +138,6 @@ export default function Login() {
             onChange={update("password")}
             error={errors.password}
             autoComplete="current-password"
-            autoFocus={Boolean(form.tenantId)}
           />
           <button type="submit" className="btn btn--primary btn--block" disabled={busy}>
             {busy ? "Signing in…" : "Log in"}
