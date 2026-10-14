@@ -4,6 +4,10 @@ export function localWorkDate(date = new Date()) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
+export function localMonth(date = new Date()) {
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}`;
+}
+
 function offsetSuffix(date) {
   const offsetMinutes = -date.getTimezoneOffset();
   const sign = offsetMinutes >= 0 ? "+" : "-";

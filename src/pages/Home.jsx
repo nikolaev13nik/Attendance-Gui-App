@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout.jsx";
+import MessageAdmin from "../components/MessageAdmin.jsx";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { displayName, isAdministrator } from "../auth/roles.js";
 
@@ -32,23 +33,47 @@ export default function Home() {
           >
             {admin ? "Review sessions" : "My sessions"}
           </button>
-          <button
-            type="button"
-            className="btn btn--block btn--large"
-            onClick={() => navigate("/leave-days")}
-          >
-            Report leave days
-          </button>
           {admin ? (
-            <button
-              type="button"
-              className="btn btn--block btn--large"
-              onClick={() => navigate("/users")}
-            >
-              Manage users
-            </button>
+            <>
+              <button
+                type="button"
+                className="btn btn--block btn--large"
+                onClick={() => navigate("/leave-days")}
+              >
+                Report leave days
+              </button>
+              <button
+                type="button"
+                className="btn btn--block btn--large"
+                onClick={() => navigate("/statistics")}
+              >
+                Employee statistics
+              </button>
+              <button
+                type="button"
+                className="btn btn--block btn--large"
+                onClick={() => navigate("/users")}
+              >
+                Manage users
+              </button>
+            </>
           ) : null}
         </div>
+
+        {admin ? null : (
+          <>
+            <hr style={{ margin: "1.5rem 0 1rem", border: "none", borderTop: "1px solid var(--border)" }} />
+            <MessageAdmin
+              heading="Need something corrected?"
+              hint="Recording leave days and correcting sessions is done by an administrator. Send them the details and they will put it in for you."
+              subject={`Attendance request - ${displayName(profile)} (ID ${profile.idUser})`}
+              bodyTemplate={
+                "Hello,\n\nPlease record the following for me:\n\n" +
+                "Date(s): \nVacation or sick leave: \nSession times to correct: "
+              }
+            />
+          </>
+        )}
       </div>
     </Layout>
   );

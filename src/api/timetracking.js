@@ -84,3 +84,37 @@ export function getLeaveDays({ tenantId, idUser, startDate, endDate, token }) {
     { token, messages: { 400: "Check the dates and the selected employee." } },
   );
 }
+
+export function changeLeaveDay({ tenantId, id, date, vacationAmount, sickAmount, token }) {
+  return request(`/attendance/leaveDayChange/tenant/${encodeURIComponent(tenantId)}`, {
+    method: "POST",
+    token,
+    body: { id, date, vacationAmount, sickAmount },
+    messages: { 404: "That leave day no longer exists. Reload the list." },
+  });
+}
+
+export function removeLeaveDay({ tenantId, id, token }) {
+  return request(
+    `/attendance/leaveDayRemove/tenant/${encodeURIComponent(tenantId)}/leaveDay/${encodeURIComponent(id)}`,
+    {
+      method: "DELETE",
+      token,
+      messages: { 404: "That leave day no longer exists. Reload the list." },
+    },
+  );
+}
+
+export function getMonthStatistic({ tenantId, targetMonth, idUser, report = false, token }) {
+  const query = new URLSearchParams({ targetMonth, report: String(report) });
+  if (idUser !== undefined && idUser !== null && idUser !== "") {
+    query.set("idUser", String(idUser));
+  }
+  return request(`/attendance/statistic/tenant/${encodeURIComponent(tenantId)}?${query}`, {
+    method: "POST",
+    token,
+    messages: {
+      403: "Only administrators can read employee statistics.",
+    },
+  });
+}

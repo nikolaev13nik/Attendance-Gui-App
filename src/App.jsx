@@ -9,6 +9,7 @@ import Users from "./pages/Users.jsx";
 import Session from "./pages/Session.jsx";
 import Sessions from "./pages/Sessions.jsx";
 import LeaveDays from "./pages/LeaveDays.jsx";
+import Statistics from "./pages/Statistics.jsx";
 
 export default function App() {
   return (
@@ -52,8 +53,16 @@ export default function App() {
       <Route
         path="/leave-days"
         element={
-          <RequireAuth>
+          <RequireAuth adminOnly>
             <LeaveDays />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/statistics"
+        element={
+          <RequireAuth adminOnly>
+            <Statistics />
           </RequireAuth>
         }
       />

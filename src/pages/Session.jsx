@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Layout from "../components/Layout.jsx";
 import Notice from "../components/Notice.jsx";
-import Modal from "../components/Modal.jsx";
 import Field from "../components/Field.jsx";
-import { closeSession, openSession } from "../api/timetracking.js";
-import { listUsers } from "../api/accounting.js";
-import { formatLongDate, formatTime, localWorkDate } from "../api/time.js";
+import MessageAdmin from "../components/MessageAdmin.jsx";
+import SessionTable, { leaveEntries } from "../components/SessionTable.jsx";
+import { closeSession, getLeaveDays, getSessions, openSession } from "../api/timetracking.js";
+import { daysAgo, formatLongDate, formatTime, localWorkDate } from "../api/time.js";
 import { useAuth } from "../auth/AuthContext.jsx";
-import { displayName, isAdministrator } from "../auth/roles.js";
+import { displayName } from "../auth/roles.js";
 
 function storageKey(tenantId, idUser, workDate) {
   return `attendance.session.${tenantId}.${idUser}.${workDate}`;
@@ -52,19 +52,33 @@ export default function Session() {
   const [record, setRecord] = useState(() => readRecord(key));
   const [failure, setFailure] = useState(null);
   const [busy, setBusy] = useState(null);
-  const [admins, setAdmins] = useState([]);
-  const [messaging, setMessaging] = useState(false);
-  const [messageText, setMessageText] = useState("");
+  const [range, setRange] = useState({ startDate: daysAgo(7), endDate: workDate });
+  const [rows, setRows] = useState(null);
+  const [leave, setLeave] = useState([]);
+  const [historyFailure, setHistoryFailure] = useState(null);
 
   useEffect(() => {
     setRecord(readRecord(key));
   }, [key]);
 
+  const loadHistory = useCallback(async () => {
+    setHistoryFailure(null);
+    setRows(null);
+    const query = { tenantId, token, idUser, startDate: range.startDate, endDate: range.endDate };
+    try {
+      const [sessions, leaveDays] = await Promise.all([getSessions(query), getLeaveDays(query)]);
+      setRows(sessions || []);
+      setLeave(leaveDays || []);
+    } catch (error) {
+      setHistoryFailure(error.message);
+      setRows([]);
+      setLeave([]);
+    }
+  }, [idUser, range, tenantId, token]);
+
   useEffect(() => {
-    listUsers({ tenantId, token })
-      .then((list) => setAdmins((list || []).filter((user) => isAdministrator(user) && user.email)))
-      .catch(() => setAdmins([]));
-  }, [tenantId, token]);
+    loadHistory();
+  }, [loadHistory]);
 
   const run = useCallback(
     async (action, label) => {
@@ -74,38 +88,21 @@ export default function Session() {
         const next = await action({ tenantId, idUser, token });
         writeRecord(key, next);
         setRecord(next);
+        await loadHistory();
       } catch (error) {
         setFailure(error.message);
       } finally {
         setBusy(null);
       }
     },
-    [idUser, key, tenantId, token],
+    [idUser, key, loadHistory, tenantId, token],
   );
 
   const status = statusOf(record);
   const openedAt = formatTime(record?.openSessionDate);
   const closedAt = formatTime(record?.closeSessionDate);
-
-  function startMessage() {
-    setMessageText(
-      `Hello,\n\nMy attendance record for ${workDate} needs correcting.\n\n` +
-        `I forgot to open my session this morning, so I cannot close it now. ` +
-        `Please record the correct hours for me.\n\n` +
-        `Start time: \nEnd time: \n\n` +
-        `${displayName(profile)} (user ID ${idUser})`,
-    );
-    setMessaging(true);
-  }
-
-  function sendMessage() {
-    const to = admins.map((admin) => admin.email).join(",");
-    const subject = `Attendance correction for ${workDate} - ${displayName(profile)} (ID ${idUser})`;
-    window.location.href =
-      `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}` +
-      `&body=${encodeURIComponent(messageText)}`;
-    setMessaging(false);
-  }
+  const updateRange = (field) => (event) => setRange((prev) => ({ ...prev, [field]: event.target.value }));
+  const entries = leaveEntries(rows, leave, true);
 
   return (
     <Layout>
@@ -176,50 +173,40 @@ export default function Session() {
 
         <hr style={{ margin: "1.5rem 0 1rem", border: "none", borderTop: "1px solid var(--border)" }} />
 
-        <h2 style={{ fontSize: "1.05rem" }}>Something wrong with today?</h2>
-        <p className="card__hint">
-          If you forgot to open a session, or the times above are wrong, ask an administrator to correct
-          the record for you.
-        </p>
-        {admins.length === 0 ? (
-          <Notice kind="info">
-            No administrator with an email address was found for this organization, so there is nobody to
-            contact from here. Speak to your administrator directly.
-          </Notice>
-        ) : (
-          <button type="button" className="btn btn--block" onClick={startMessage}>
-            Message an administrator
-          </button>
-        )}
+        <MessageAdmin
+          heading="Something wrong with today?"
+          hint="If you forgot to open a session, or the times above are wrong, ask an administrator to correct the record for you."
+          subject={`Attendance correction for ${workDate} - ${displayName(profile)} (ID ${idUser})`}
+          bodyTemplate={
+            `Hello,\n\nMy attendance record for ${workDate} needs correcting.\n\n` +
+            `I forgot to open my session this morning, so I cannot close it now. ` +
+            `Please record the correct hours for me.\n\n` +
+            `Start time: \nEnd time: `
+          }
+        />
       </div>
 
-      {messaging ? (
-        <Modal
-          title="Message an administrator"
-          onClose={() => setMessaging(false)}
-          actions={
-            <>
-              <button type="button" className="btn" onClick={() => setMessaging(false)}>
-                Cancel
-              </button>
-              <button type="button" className="btn btn--primary" onClick={sendMessage}>
-                Open in email
-              </button>
-            </>
-          }
-        >
-          <p className="card__hint">
-            Goes to {admins.map((admin) => admin.email).join(", ")}. This opens your email program with
-            the message ready to send, so you can check it before it leaves.
-          </p>
-          <Field
-            label="Message"
-            as="textarea"
-            value={messageText}
-            onChange={(event) => setMessageText(event.target.value)}
-          />
-        </Modal>
-      ) : null}
+      <div className="card">
+        <h2 className="card__title">What is already recorded</h2>
+        <Notice kind="info">
+          This list is read-only. To change or delete a record, an administrator has to use the Review
+          sessions control panel.
+        </Notice>
+        <Notice kind="error">{historyFailure}</Notice>
+
+        <div className="row" style={{ alignItems: "flex-end", marginBottom: "1rem" }}>
+          <Field label="From" type="date" value={range.startDate} onChange={updateRange("startDate")} />
+          <Field label="To" type="date" value={range.endDate} onChange={updateRange("endDate")} />
+        </div>
+
+        {rows === null ? (
+          <p className="spinner">Loading…</p>
+        ) : entries.length === 0 ? (
+          <p className="spinner">Nothing recorded for you in that range.</p>
+        ) : (
+          <SessionTable sessions={rows} leave={leave} />
+        )}
+      </div>
     </Layout>
   );
 }

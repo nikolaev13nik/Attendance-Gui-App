@@ -1,19 +1,14 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout.jsx";
 import Notice from "../components/Notice.jsx";
 import Field from "../components/Field.jsx";
+import SessionTable, { LEAVE_AMOUNTS as AMOUNTS, leaveEntries } from "../components/SessionTable.jsx";
 import { listUsers } from "../api/accounting.js";
-import { addLeaveDays } from "../api/timetracking.js";
-import { localWorkDate } from "../api/time.js";
+import { addLeaveDays, getLeaveDays, getSessions } from "../api/timetracking.js";
+import { daysAgo, localWorkDate } from "../api/time.js";
 import { useAuth } from "../auth/AuthContext.jsx";
-import { displayName, isAdministrator } from "../auth/roles.js";
-
-const AMOUNTS = [
-  { value: "0", label: "none" },
-  { value: "0.5", label: "half day" },
-  { value: "1", label: "full day" },
-];
+import { displayName } from "../auth/roles.js";
 
 const emptyRow = () => ({ date: localWorkDate(), vacation: "1", sick: "0" });
 
@@ -21,7 +16,6 @@ export default function LeaveDays() {
   const navigate = useNavigate();
   const { token, profile } = useAuth();
   const tenantId = profile.tenantId;
-  const admin = isAdministrator(profile);
 
   const [users, setUsers] = useState([]);
   const [idUser, setIdUser] = useState(String(profile.idUser));
@@ -30,18 +24,46 @@ export default function LeaveDays() {
   const [failure, setFailure] = useState(null);
   const [success, setSuccess] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [range, setRange] = useState({ startDate: daysAgo(7), endDate: localWorkDate() });
+  const [recorded, setRecorded] = useState(null);
+  const [recordedLeave, setRecordedLeave] = useState([]);
+  const [historyFailure, setHistoryFailure] = useState(null);
 
   useEffect(() => {
-    if (!admin) {
-      return;
-    }
     listUsers({ tenantId, token })
       .then((list) => setUsers(list || []))
       .catch((error) => setFailure(error.message));
-  }, [admin, tenantId, token]);
+  }, [tenantId, token]);
+
+  const loadHistory = useCallback(async () => {
+    setHistoryFailure(null);
+    setRecorded(null);
+    const query = {
+      tenantId,
+      token,
+      idUser: Number(idUser),
+      startDate: range.startDate,
+      endDate: range.endDate,
+    };
+    try {
+      const [sessions, leaveDays] = await Promise.all([getSessions(query), getLeaveDays(query)]);
+      setRecorded(sessions || []);
+      setRecordedLeave(leaveDays || []);
+    } catch (error) {
+      setHistoryFailure(error.message);
+      setRecorded([]);
+      setRecordedLeave([]);
+    }
+  }, [idUser, range, tenantId, token]);
+
+  useEffect(() => {
+    loadHistory();
+  }, [loadHistory]);
 
   const updateRow = (index, key) => (event) =>
     setRows((prev) => prev.map((row, i) => (i === index ? { ...row, [key]: event.target.value } : row)));
+
+  const updateRange = (field) => (event) => setRange((prev) => ({ ...prev, [field]: event.target.value }));
 
   const addRow = () => setRows((prev) => [...prev, emptyRow()]);
   const removeRow = (index) => setRows((prev) => prev.filter((_, i) => i !== index));
@@ -97,6 +119,7 @@ export default function LeaveDays() {
         }.`,
       );
       setRows([emptyRow()]);
+      await loadHistory();
     } catch (error) {
       setFailure(error.message);
     } finally {
@@ -113,7 +136,7 @@ export default function LeaveDays() {
               Report leave days
             </h1>
             <p className="card__hint" style={{ marginBottom: 0 }}>
-              {admin ? "Record vacation and sick days for an employee." : "Record your vacation and sick days."}
+              Record vacation and sick days for an employee.
             </p>
           </div>
           <button type="button" className="btn" onClick={() => navigate("/home")}>
@@ -124,26 +147,24 @@ export default function LeaveDays() {
         <Notice kind="error">{failure}</Notice>
         <Notice kind="success">{success}</Notice>
         <Notice kind="info">
-          Leave days can only be written, not listed back: the service has no endpoint to read or delete
-          them. Recording a date again overwrites what was stored for it, and the totals appear under
-          monthly statistics.
+          One record per date: reporting a date again updates what was stored for it rather than adding
+          a second row. Vacation and sickness on the same date cannot exceed a full day together, and the
+          totals appear under employee statistics.
         </Notice>
 
         <form onSubmit={submit} noValidate>
-          {admin ? (
-            <Field
-              label="Employee"
-              as="select"
-              value={idUser}
-              onChange={(event) => setIdUser(event.target.value)}
-            >
-              {users.map((user) => (
-                <option key={user.idUser} value={String(user.idUser)}>
-                  {displayName(user)} ({user.idUser})
-                </option>
-              ))}
-            </Field>
-          ) : null}
+          <Field
+            label="Employee"
+            as="select"
+            value={idUser}
+            onChange={(event) => setIdUser(event.target.value)}
+          >
+            {users.map((user) => (
+              <option key={user.idUser} value={String(user.idUser)}>
+                {displayName(user)} ({user.idUser})
+              </option>
+            ))}
+          </Field>
 
           <table className="table" style={{ marginBottom: "0.75rem" }}>
             <thead>
@@ -219,6 +240,27 @@ export default function LeaveDays() {
             </button>
           </div>
         </form>
+      </div>
+
+      <div className="card">
+        <h2 className="card__title">What is already recorded</h2>
+        <Notice kind="info">
+          This list is read-only. To change or delete a record, use the Review sessions control panel.
+        </Notice>
+        <Notice kind="error">{historyFailure}</Notice>
+
+        <div className="row" style={{ alignItems: "flex-end", marginBottom: "1rem" }}>
+          <Field label="From" type="date" value={range.startDate} onChange={updateRange("startDate")} />
+          <Field label="To" type="date" value={range.endDate} onChange={updateRange("endDate")} />
+        </div>
+
+        {recorded === null ? (
+          <p className="spinner">Loading…</p>
+        ) : leaveEntries(recorded, recordedLeave, true).length === 0 ? (
+          <p className="spinner">Nothing recorded in that range.</p>
+        ) : (
+          <SessionTable sessions={recorded} leave={recordedLeave} />
+        )}
       </div>
     </Layout>
   );
