@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.git/
+.github/
+.idea/
+helm/
+.env
+.env.*
+*.iml
+npm-debug.log*
+.DS_Store
