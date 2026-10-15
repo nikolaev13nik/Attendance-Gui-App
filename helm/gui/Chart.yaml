@@ -1,0 +1,8 @@
+apiVersion: v2
+name: gui
+description: The React single-page frontend. Served by nginx at the ingress root; depends on the attendance-platform chart's Ingress.
+type: application
+
+version: 0.1.0
+
+appVersion: "1.0.0"

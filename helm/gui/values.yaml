@@ -1,0 +1,36 @@
+namespace: attendance
+
+replicaCount: 1
+
+image:
+  repository: ghcr.io/nikolaev13nik/attendance-gui-app
+  tag: ""
+  pullPolicy: IfNotPresent
+
+service:
+  port: 8080
+  targetPort: 8080
+
+resources:
+  requests:
+    memory: 16Mi
+    cpu: 10m
+  limits:
+    memory: 64Mi
+    cpu: 200m
+
+strategy:
+  maxSurge: 1
+  maxUnavailable: 0
+
+probes:
+  path: /healthz
+  startup:
+    periodSeconds: 2
+    failureThreshold: 15
+  readiness:
+    periodSeconds: 10
+    failureThreshold: 3
+  liveness:
+    periodSeconds: 30
+    failureThreshold: 3
