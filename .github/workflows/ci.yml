@@ -1,0 +1,145 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+    # Deployment descriptors and docs do not change the application, so they must
+    # not build a new image or mint a new version tag. Without this, the
+    # appVersion bump at the end of this workflow would retrigger the build,
+    # and the chart could never catch up with the image.
+    # Note: this skips the run only when EVERY changed file matches. A commit
+    # touching both src/ and k8s/ still builds, which is correct.
+    paths-ignore:
+      - 'k8s/**'
+      - 'helm/**'
+      - '**.md'
+
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Upload build output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Generate version
+        id: version
+        run: |
+
+          git fetch --tags
+
+          # Find latest main version
+          latest=$(git tag --list '[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n 1)
+
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+
+            # If there are no main versions yet
+            if [ -z "$latest" ]; then
+              latest="1.0.0"
+            fi
+
+            # PR version:
+            # latest main version + GitHub Actions run number
+            version="${latest}-${{ github.run_number }}"
+
+          else
+
+            # Main version
+            if [ -z "$latest" ]; then
+              version="1.0.0"
+            else
+              IFS='.' read -r major minor patch <<< "$latest"
+
+              patch=$((patch + 1))
+
+              version="$major.$minor.$patch"
+            fi
+
+          fi
+
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+          echo "================================="
+          echo "Build version: $version"
+          echo "================================="
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Docker image
+        run: |
+
+          IMAGE_NAME=$(echo "ghcr.io/${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')
+
+          docker build \
+            -t "$IMAGE_NAME:${{ steps.version.outputs.version }}" \
+            .
+
+      - name: Push Docker image
+        run: |
+
+          IMAGE_NAME=$(echo "ghcr.io/${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')
+
+          docker push "$IMAGE_NAME:${{ steps.version.outputs.version }}"
+
+      - name: Create main version tag
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git tag "${{ steps.version.outputs.version }}"
+
+          git push origin "${{ steps.version.outputs.version }}"
+
+      - name: Bump appVersion for Argo CD
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          sed -i "s|^appVersion:.*|appVersion: \"${{ steps.version.outputs.version }}\"|" \
+            helm/gui/Chart.yaml
+
+          git add helm/gui/Chart.yaml
+
+          git diff --cached --quiet || {
+            git commit -m "ci: deploy ${{ steps.version.outputs.version }}"
+            git push origin HEAD:main
+          }
