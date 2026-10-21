@@ -84,6 +84,21 @@ a {
   flex: 1;
 }
 
+.header__lang {
+  font: inherit;
+  font-size: 0.92rem;
+  padding: 0.3rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid var(--brand-contrast);
+  background: transparent;
+  color: var(--brand-contrast);
+  cursor: pointer;
+}
+
+.header__lang option {
+  color: initial;
+}
+
 .header__user {
   font-size: 0.92rem;
   opacity: 0.92;
