@@ -7,12 +7,14 @@ import Modal from "../components/Modal.jsx";
 import { addRole, deleteUser, editUser, listUsers, registerUser, removeRole } from "../api/accounting.js";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { ADMINISTRATOR, displayName, isAdministrator } from "../auth/roles.js";
+import { useI18n } from "../i18n/I18nContext.jsx";
 
 const EMPTY_CREATE = { idUser: "", firstName: "", lastName: "", email: "", password: "" };
 
 export default function Users() {
   const navigate = useNavigate();
   const { token, profile } = useAuth();
+  const { t, roleLabel } = useI18n();
   const tenantId = profile.tenantId;
 
   const [users, setUsers] = useState(null);
@@ -62,13 +64,13 @@ export default function Users() {
   function validateCreate() {
     const next = {};
     if (!/^\d+$/.test(createForm.idUser) || Number(createForm.idUser) < 1) {
-      next.idUser = "Enter a whole number of 1 or more.";
+      next.idUser = t("validation.wholeNumber");
     }
     if (!/^\S+@\S+\.\S+$/.test(createForm.email)) {
-      next.email = "Enter a valid email address.";
+      next.email = t("validation.email");
     }
     if (createForm.password.length < 4) {
-      next.password = "Use at least 4 characters.";
+      next.password = t("validation.passwordLength");
     }
     setCreateErrors(next);
     return Object.keys(next).length === 0;
@@ -90,7 +92,7 @@ export default function Users() {
           firstName: createForm.firstName.trim() || undefined,
           lastName: createForm.lastName.trim() || undefined,
         }),
-      `User ${createForm.idUser} was added.`,
+      t("users.added", { id: createForm.idUser }),
     );
     if (ok) {
       setCreating(false);
@@ -113,7 +115,7 @@ export default function Users() {
           email: editForm.email.trim() || undefined,
           password: editForm.password || undefined,
         }),
-      `User ${target.idUser} was updated.`,
+      t("users.updated", { id: target.idUser }),
     );
     if (ok) {
       setEditing(null);
@@ -133,15 +135,15 @@ export default function Users() {
         <div className="row row--split" style={{ marginBottom: "0.75rem" }}>
           <div>
             <h1 className="card__title" style={{ marginBottom: 0 }}>
-              Users
+              {t("users.title")}
             </h1>
             <p className="card__hint" style={{ marginBottom: 0 }}>
-              Everyone in organization {tenantId}.
+              {t("users.hint", { id: tenantId })}
             </p>
           </div>
           <div className="row">
             <button type="button" className="btn" onClick={() => navigate("/home")}>
-              Back
+              {t("common.back")}
             </button>
             <button
               type="button"
@@ -151,7 +153,7 @@ export default function Users() {
                 setCreating(true);
               }}
             >
-              Add user
+              {t("users.add")}
             </button>
           </div>
         </div>
@@ -160,18 +162,18 @@ export default function Users() {
         <Notice kind="success">{success}</Notice>
 
         {users === null ? (
-          <p className="spinner">Loading…</p>
+          <p className="spinner">{t("common.loading")}</p>
         ) : users.length === 0 ? (
-          <p className="spinner">No users found in this organization.</p>
+          <p className="spinner">{t("users.none")}</p>
         ) : (
           <table className="table">
             <thead>
               <tr>
-                <th>ID number</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Roles</th>
-                <th aria-label="Actions" />
+                <th>{t("common.idNumber")}</th>
+                <th>{t("users.name")}</th>
+                <th>{t("common.email")}</th>
+                <th>{t("users.roles")}</th>
+                <th aria-label={t("common.actions")} />
               </tr>
             </thead>
             <tbody>
@@ -183,7 +185,7 @@ export default function Users() {
                     <td>{user.idUser}</td>
                     <td>
                       {displayName(user)}
-                      {self ? <span className="tag tag--you" style={{ marginLeft: "0.4rem" }}>you</span> : null}
+                      {self ? <span className="tag tag--you" style={{ marginInlineStart: "0.4rem" }}>{t("users.you")}</span> : null}
                     </td>
                     <td>{user.email || "—"}</td>
                     <td>
@@ -192,7 +194,7 @@ export default function Users() {
                           key={role}
                           className={`tag${role.toUpperCase() === ADMINISTRATOR ? " tag--admin" : ""}`}
                         >
-                          {role}
+                          {roleLabel(role)}
                         </span>
                       ))}
                     </td>
@@ -212,25 +214,25 @@ export default function Users() {
                             });
                           }}
                         >
-                          Edit
+                          {t("common.edit")}
                         </button>
                         <button
                           type="button"
                           className="btn btn--link"
                           disabled={(admin && self) || busy !== null}
-                          title={admin && self ? "You cannot remove your own administrator role" : undefined}
+                          title={admin && self ? t("users.cannotRevokeSelf") : undefined}
                           onClick={() => setConfirmRole({ user, grant: !admin })}
                         >
-                          {admin ? "Revoke admin" : "Grant admin"}
+                          {admin ? t("users.revokeAdmin") : t("users.grantAdmin")}
                         </button>
                         <button
                           type="button"
                           className="btn btn--link"
                           disabled={self || busy !== null}
-                          title={self ? "You cannot delete your own account" : undefined}
+                          title={self ? t("users.cannotDeleteSelf") : undefined}
                           onClick={() => setConfirmDelete(user)}
                         >
-                          Delete
+                          {t("common.delete")}
                         </button>
                       </div>
                     </td>
@@ -244,48 +246,48 @@ export default function Users() {
 
       {creating ? (
         <Modal
-          title="Add user"
+          title={t("users.add")}
           onClose={() => setCreating(false)}
           actions={
             <>
               <button type="button" className="btn" onClick={() => setCreating(false)}>
-                Cancel
+                {t("common.cancel")}
               </button>
               <button type="submit" form="create-user" className="btn btn--primary" disabled={busy !== null}>
-                {busy === "create" ? "Adding…" : "Add user"}
+                {busy === "create" ? t("common.adding") : t("users.add")}
               </button>
             </>
           }
         >
           <Notice kind="error">{failure}</Notice>
           <p className="card__hint">
-            New users receive the standard role. Grant administrator from the table afterwards if needed.
+            {t("users.addHint")}
           </p>
           <form id="create-user" onSubmit={submitCreate} noValidate>
             <Field
-              label="ID number"
+              label={t("common.idNumber")}
               type="number"
               min="1"
               step="1"
               value={createForm.idUser}
               onChange={updateCreate("idUser")}
               error={createErrors.idUser}
-              hint="The person's national ID number. This is what they sign in with."
+              hint={t("common.idNumberHint")}
               autoFocus
             />
             <div className="grid-2">
-              <Field label="First name" value={createForm.firstName} onChange={updateCreate("firstName")} />
-              <Field label="Last name" value={createForm.lastName} onChange={updateCreate("lastName")} />
+              <Field label={t("common.firstName")} value={createForm.firstName} onChange={updateCreate("firstName")} />
+              <Field label={t("common.lastName")} value={createForm.lastName} onChange={updateCreate("lastName")} />
             </div>
             <Field
-              label="Email"
+              label={t("common.email")}
               type="email"
               value={createForm.email}
               onChange={updateCreate("email")}
               error={createErrors.email}
             />
             <Field
-              label="Password"
+              label={t("common.password")}
               type="password"
               value={createForm.password}
               onChange={updateCreate("password")}
@@ -298,15 +300,15 @@ export default function Users() {
 
       {editing ? (
         <Modal
-          title={`Edit user ${editing.idUser}`}
+          title={t("users.editTitle", { id: editing.idUser })}
           onClose={() => setEditing(null)}
           actions={
             <>
               <button type="button" className="btn" onClick={() => setEditing(null)}>
-                Cancel
+                {t("common.cancel")}
               </button>
               <button type="submit" form="edit-user" className="btn btn--primary" disabled={busy !== null}>
-                {busy === "edit" ? "Saving…" : "Save changes"}
+                {busy === "edit" ? t("common.saving") : t("common.saveChanges")}
               </button>
             </>
           }
@@ -314,16 +316,16 @@ export default function Users() {
           <Notice kind="error">{failure}</Notice>
           <form id="edit-user" onSubmit={submitEdit} noValidate>
             <div className="grid-2">
-              <Field label="First name" value={editForm.firstName} onChange={updateEdit("firstName")} autoFocus />
-              <Field label="Last name" value={editForm.lastName} onChange={updateEdit("lastName")} />
+              <Field label={t("common.firstName")} value={editForm.firstName} onChange={updateEdit("firstName")} autoFocus />
+              <Field label={t("common.lastName")} value={editForm.lastName} onChange={updateEdit("lastName")} />
             </div>
-            <Field label="Email" type="email" value={editForm.email} onChange={updateEdit("email")} />
+            <Field label={t("common.email")} type="email" value={editForm.email} onChange={updateEdit("email")} />
             <Field
-              label="New password"
+              label={t("users.newPassword")}
               type="password"
               value={editForm.password}
               onChange={updateEdit("password")}
-              hint="Leave blank to keep the current password."
+              hint={t("users.newPasswordHint")}
               autoComplete="new-password"
             />
           </form>
@@ -333,12 +335,12 @@ export default function Users() {
 
       {confirmRole ? (
         <Modal
-          title={confirmRole.grant ? "Grant administrator" : "Revoke administrator"}
+          title={confirmRole.grant ? t("users.grantTitle") : t("users.revokeTitle")}
           onClose={() => setConfirmRole(null)}
           actions={
             <>
               <button type="button" className="btn" onClick={() => setConfirmRole(null)}>
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 type="button"
@@ -354,32 +356,32 @@ export default function Users() {
                         ? addRole({ idUser: user.idUser, role: ADMINISTRATOR, token })
                         : removeRole({ idUser: user.idUser, role: ADMINISTRATOR, token }),
                     grant
-                      ? `User ${user.idUser} is now an administrator.`
-                      : `User ${user.idUser} is no longer an administrator.`,
+                      ? t("users.granted", { id: user.idUser })
+                      : t("users.revoked", { id: user.idUser }),
                   );
                 }}
               >
-                {busy === "role" ? "Saving…" : confirmRole.grant ? "Grant admin" : "Revoke admin"}
+                {busy === "role" ? t("common.saving") : confirmRole.grant ? t("users.grantAdmin") : t("users.revokeAdmin")}
               </button>
             </>
           }
         >
           <p style={{ marginTop: 0 }}>
             {confirmRole.grant
-              ? `Give ${displayName(confirmRole.user)} (ID ${confirmRole.user.idUser}) administrator rights? They will be able to manage every user and every session in this organization.`
-              : `Remove administrator rights from ${displayName(confirmRole.user)} (ID ${confirmRole.user.idUser})? They will keep their account and can still record their own sessions.`}
+              ? t("users.grantConfirm", { name: displayName(confirmRole.user), id: confirmRole.user.idUser })
+              : t("users.revokeConfirm", { name: displayName(confirmRole.user), id: confirmRole.user.idUser })}
           </p>
         </Modal>
       ) : null}
 
       {confirmDelete ? (
         <Modal
-          title="Delete user"
+          title={t("users.deleteTitle")}
           onClose={() => setConfirmDelete(null)}
           actions={
             <>
               <button type="button" className="btn" onClick={() => setConfirmDelete(null)}>
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 type="button"
@@ -391,18 +393,17 @@ export default function Users() {
                   await act(
                     "delete",
                     () => deleteUser({ idUser: target.idUser, token }),
-                    `User ${target.idUser} was deleted.`,
+                    t("users.deleted", { id: target.idUser }),
                   );
                 }}
               >
-                {busy === "delete" ? "Deleting…" : "Delete"}
+                {busy === "delete" ? t("common.deleting") : t("common.delete")}
               </button>
             </>
           }
         >
           <p style={{ marginTop: 0 }}>
-            Delete {displayName(confirmDelete)} (ID {confirmDelete.idUser})? Their recorded work sessions
-            are kept, but they will no longer be able to sign in.
+            {t("users.deleteConfirm", { name: displayName(confirmDelete), id: confirmDelete.idUser })}
           </p>
         </Modal>
       ) : null}

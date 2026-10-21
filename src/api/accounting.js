@@ -5,7 +5,7 @@ export function addTenant({ companyName, contactName, phone, email }) {
     method: "POST",
     body: { companyName, contactName, phone, email },
     messages: {
-      409: "An organization with that name is already registered. Sign in instead, or pick another name.",
+      409: "api.tenantExists",
     },
   });
 }
@@ -15,7 +15,7 @@ export function registerUser({ idUser, password, email, tenantId, firstName, las
     method: "POST",
     body: { idUser, password, email, tenantId, firstName, lastName },
     messages: {
-      409: "A user with that ID already exists.",
+      409: "api.userExists",
     },
   });
 }
@@ -25,7 +25,7 @@ export function login({ idUser, password, tenantId, companyName }) {
     method: "POST",
     body: { idUser, password, tenantId, companyName },
     messages: {
-      401: "Those details did not match. Check the organization, user ID and password.",
+      401: "api.loginFailed",
     },
   });
 }
@@ -40,8 +40,8 @@ export function editUser({ idUser, token, firstName, lastName, email, password }
     token,
     body: { firstName, lastName, email, password },
     messages: {
-      403: "You can only edit your own profile unless you are an administrator.",
-      500: "That user could not be found.",
+      403: "api.editForbidden",
+      500: "api.userNotFound",
     },
   });
 }

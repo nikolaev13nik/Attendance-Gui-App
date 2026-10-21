@@ -5,9 +5,11 @@ import Field from "./Field.jsx";
 import { listUsers } from "../api/accounting.js";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { displayName, isAdministrator } from "../auth/roles.js";
+import { useI18n } from "../i18n/I18nContext.jsx";
 
 export default function MessageAdmin({ heading, hint, subject, bodyTemplate }) {
   const { token, profile } = useAuth();
+  const { t } = useI18n();
   const { idUser, tenantId } = profile;
 
   const [admins, setAdmins] = useState([]);
@@ -21,7 +23,7 @@ export default function MessageAdmin({ heading, hint, subject, bodyTemplate }) {
   }, [tenantId, token]);
 
   function startMessage() {
-    setMessageText(`${bodyTemplate}\n\n${displayName(profile)} (user ID ${idUser})`);
+    setMessageText(`${bodyTemplate}\n\n${t("message.signature", { name: displayName(profile), id: idUser })}`);
     setMessaging(true);
   }
 
@@ -39,36 +41,34 @@ export default function MessageAdmin({ heading, hint, subject, bodyTemplate }) {
       <p className="card__hint">{hint}</p>
       {admins.length === 0 ? (
         <Notice kind="info">
-          No administrator with an email address was found for this organization, so there is nobody to
-          contact from here. Speak to your administrator directly.
+          {t("message.noAdmin")}
         </Notice>
       ) : (
         <button type="button" className="btn btn--block" onClick={startMessage}>
-          Message an administrator
+          {t("message.button")}
         </button>
       )}
 
       {messaging ? (
         <Modal
-          title="Message an administrator"
+          title={t("message.button")}
           onClose={() => setMessaging(false)}
           actions={
             <>
               <button type="button" className="btn" onClick={() => setMessaging(false)}>
-                Cancel
+                {t("common.cancel")}
               </button>
               <button type="button" className="btn btn--primary" onClick={sendMessage}>
-                Open in email
+                {t("message.openEmail")}
               </button>
             </>
           }
         >
           <p className="card__hint">
-            Goes to {admins.map((admin) => admin.email).join(", ")}. This opens your email program with
-            the message ready to send, so you can check it before it leaves.
+            {t("message.goesTo", { emails: admins.map((admin) => admin.email).join(", ") })}
           </p>
           <Field
-            label="Message"
+            label={t("message.label")}
             as="textarea"
             value={messageText}
             onChange={(event) => setMessageText(event.target.value)}

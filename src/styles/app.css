@@ -75,7 +75,7 @@ a {
 
 .header__org {
   font-family: "Merienda", "Noto Serif", serif;
-  font-size: 1.3rem;
+  font-size: 1.6rem;
   font-weight: 700;
   letter-spacing: 0.02em;
 }
@@ -411,7 +411,7 @@ a {
   }
 
   .header__org {
-    font-size: 1.1rem;
+    font-size: 1.3rem;
   }
 }
 

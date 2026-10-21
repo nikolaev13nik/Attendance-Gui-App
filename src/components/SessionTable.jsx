@@ -1,9 +1,10 @@
 import { formatTime } from "../api/time.js";
+import { useI18n } from "../i18n/I18nContext.jsx";
 
 export const LEAVE_AMOUNTS = [
-  { value: "0", label: "none" },
-  { value: "0.5", label: "half day" },
-  { value: "1", label: "full day" },
+  { value: "0", label: "leave.none" },
+  { value: "0.5", label: "leave.half" },
+  { value: "1", label: "leave.full" },
 ];
 
 function startedAt(isoString) {
@@ -56,6 +57,7 @@ export default function SessionTable({
   onToggleStartSort,
   actions,
 }) {
+  const { t } = useI18n();
   const entries = leaveEntries(sessions, leave, sortDesc, startDesc);
   const needsFixing = incompleteIds || new Set();
 
@@ -63,36 +65,36 @@ export default function SessionTable({
     <table className="table">
       <thead>
         <tr>
-          <th>Type</th>
+          <th>{t("table.type")}</th>
           <th>
             {onToggleSort ? (
               <button type="button" className="btn btn--link" onClick={onToggleSort}>
-                Date {sortDesc ? "↓" : "↑"}
+                {t("common.date")} {sortDesc ? "↓" : "↑"}
               </button>
             ) : (
-              "Date"
+              t("common.date")
             )}
           </th>
           <th>
             {onToggleStartSort ? (
               <button type="button" className="btn btn--link" onClick={onToggleStartSort}>
-                Start {startDesc ? "\u2193" : "\u2191"}
+                {t("common.start")} {startDesc ? "\u2193" : "\u2191"}
               </button>
             ) : (
-              "Start"
+              t("common.start")
             )}
           </th>
-          <th>End</th>
-          <th>Sickness</th>
-          <th>Vacation</th>
-          {actions ? <th aria-label="Actions" /> : null}
+          <th>{t("common.end")}</th>
+          <th>{t("common.sickness")}</th>
+          <th>{t("common.vacation")}</th>
+          {actions ? <th aria-label={t("common.actions")} /> : null}
         </tr>
       </thead>
       <tbody>
         {entries.map((entry) =>
           entry.kind === "leave" ? (
             <tr key={`leave-${entry.row.id}`}>
-              <td>Leave day</td>
+              <td>{t("table.leaveDay")}</td>
               <td>{entry.row.date}</td>
               <td>&mdash;</td>
               <td>&mdash;</td>
@@ -103,17 +105,17 @@ export default function SessionTable({
           ) : (
             <tr key={`session-${entry.row.id}`}>
               <td>
-                Work hours
+                {t("table.workHours")}
                 {needsFixing.has(entry.row.id) ? (
                   <>
                     {" "}
-                    <span className="tag tag--admin">needs fixing</span>
+                    <span className="tag tag--admin">{t("table.needsFixing")}</span>
                   </>
                 ) : null}
               </td>
               <td>{entry.row.workDate}</td>
-              <td>{formatTime(entry.row.openSessionDate) || <span className="tag">missing</span>}</td>
-              <td>{formatTime(entry.row.closeSessionDate) || <span className="tag">missing</span>}</td>
+              <td>{formatTime(entry.row.openSessionDate) || <span className="tag">{t("table.missing")}</span>}</td>
+              <td>{formatTime(entry.row.closeSessionDate) || <span className="tag">{t("table.missing")}</span>}</td>
               <td>&mdash;</td>
               <td>&mdash;</td>
               {actions ? <td>{actions(entry)}</td> : null}

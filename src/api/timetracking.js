@@ -2,8 +2,8 @@ import { request } from "./http.js";
 import { localTimestamp, localWorkDate } from "./time.js";
 
 const SESSION_MESSAGES = {
-  400: "The server rejected that work date. It must be today, and only administrators can record earlier days.",
-  403: "Your token does not allow recording a session for that user or organization.",
+  400: "api.sessionDate",
+  403: "api.sessionForbidden",
 };
 
 export function openSession({ tenantId, idUser, token, at = new Date() }) {
@@ -34,7 +34,7 @@ export function getSessions({ tenantId, idUser, startDate, endDate, token }) {
   const query = new URLSearchParams({ startDate, endDate, idUser: String(idUser) });
   return request(`/attendance/sessions/tenant/${encodeURIComponent(tenantId)}?${query}`, {
     token,
-    messages: { 400: "Check the dates and the selected employee." },
+    messages: { 400: "api.checkDates" },
   });
 }
 
@@ -42,7 +42,7 @@ export function checkIncomplete({ tenantId, idUser, startDate, endDate, token })
   const query = new URLSearchParams({ startDate, endDate });
   return request(
     `/attendance/check/tenant/${encodeURIComponent(tenantId)}/user/${encodeURIComponent(idUser)}?${query}`,
-    { token, messages: { 400: "Check the dates and the selected employee." } },
+    { token, messages: { 400: "api.checkDates" } },
   );
 }
 
@@ -51,7 +51,7 @@ export function changeSession({ tenantId, id, openSessionDate, closeSessionDate,
     method: "POST",
     token,
     body: { id, openSessionDate, closeSessionDate },
-    messages: { 404: "That session no longer exists. Reload the list." },
+    messages: { 404: "api.sessionGone" },
   });
 }
 
@@ -61,7 +61,7 @@ export function removeSession({ tenantId, id, token }) {
     {
       method: "DELETE",
       token,
-      messages: { 404: "That session no longer exists. Reload the list." },
+      messages: { 404: "api.sessionGone" },
     },
   );
 }
@@ -81,7 +81,7 @@ export function getLeaveDays({ tenantId, idUser, startDate, endDate, token }) {
   const query = new URLSearchParams({ startDate, endDate });
   return request(
     `/attendance/leaveDays/tenant/${encodeURIComponent(tenantId)}/userId/${encodeURIComponent(idUser)}?${query}`,
-    { token, messages: { 400: "Check the dates and the selected employee." } },
+    { token, messages: { 400: "api.checkDates" } },
   );
 }
 
@@ -90,7 +90,7 @@ export function changeLeaveDay({ tenantId, id, date, vacationAmount, sickAmount,
     method: "POST",
     token,
     body: { id, date, vacationAmount, sickAmount },
-    messages: { 404: "That leave day no longer exists. Reload the list." },
+    messages: { 404: "api.leaveGone" },
   });
 }
 
@@ -100,7 +100,7 @@ export function removeLeaveDay({ tenantId, id, token }) {
     {
       method: "DELETE",
       token,
-      messages: { 404: "That leave day no longer exists. Reload the list." },
+      messages: { 404: "api.leaveGone" },
     },
   );
 }
@@ -114,7 +114,7 @@ export function getMonthStatistic({ tenantId, targetMonth, idUser, report = fals
     method: "POST",
     token,
     messages: {
-      403: "Only administrators can read employee statistics.",
+      403: "api.statisticsForbidden",
     },
   });
 }

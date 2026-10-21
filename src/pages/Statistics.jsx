@@ -9,6 +9,7 @@ import { getMonthStatistic } from "../api/timetracking.js";
 import { localMonth } from "../api/time.js";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { displayName } from "../auth/roles.js";
+import { useI18n } from "../i18n/I18nContext.jsx";
 
 const ALL_EMPLOYEES = "";
 
@@ -23,6 +24,7 @@ function days(value) {
 export default function Statistics() {
   const navigate = useNavigate();
   const { token, profile } = useAuth();
+  const { t } = useI18n();
   const tenantId = profile.tenantId;
 
   const [users, setUsers] = useState([]);
@@ -53,8 +55,8 @@ export default function Statistics() {
       setResults(body || []);
       setSuccess(
         report
-          ? "Statistics computed. The AI analysis is emailed to you once it is ready."
-          : "Statistics computed.",
+          ? t("statistics.computedReport")
+          : t("statistics.computed"),
       );
     } catch (error) {
       setFailure(error.message);
@@ -67,7 +69,7 @@ export default function Statistics() {
   function submit(event) {
     event.preventDefault();
     if (!targetMonth) {
-      setFailure("Pick a month.");
+      setFailure(t("statistics.pickMonth"));
       return;
     }
     if (fanOut) {
@@ -79,7 +81,7 @@ export default function Statistics() {
 
   function nameOf(userId) {
     const found = users.find((user) => user.idUser === userId);
-    return found ? `${displayName(found)} (${userId})` : `User ${userId}`;
+    return found ? `${displayName(found)} (${userId})` : t("leaveDays.user", { id: userId });
   }
 
   return (
@@ -88,14 +90,14 @@ export default function Statistics() {
         <div className="row row--split" style={{ marginBottom: "0.75rem" }}>
           <div>
             <h1 className="card__title" style={{ marginBottom: 0 }}>
-              Employee statistics
+              {t("home.statistics")}
             </h1>
             <p className="card__hint" style={{ marginBottom: 0 }}>
-              Worked days, hours, overtime and leave for a month.
+              {t("statistics.hint")}
             </p>
           </div>
           <button type="button" className="btn" onClick={() => navigate("/home")}>
-            Back
+            {t("common.back")}
           </button>
         </div>
 
@@ -105,14 +107,14 @@ export default function Statistics() {
         <form onSubmit={submit} noValidate>
           <div className="row" style={{ alignItems: "flex-end" }}>
             <Field
-              label="Month"
+              label={t("common.month")}
               type="month"
               value={targetMonth}
               onChange={(event) => setTargetMonth(event.target.value)}
             />
             <div className="field" style={{ minWidth: "16rem" }}>
               <label className="field__label" htmlFor="statistic-user">
-                Employee
+                {t("common.employee")}
               </label>
               <select
                 id="statistic-user"
@@ -120,7 +122,7 @@ export default function Statistics() {
                 value={idUser}
                 onChange={(event) => setIdUser(event.target.value)}
               >
-                <option value={ALL_EMPLOYEES}>All employees</option>
+                <option value={ALL_EMPLOYEES}>{t("statistics.allEmployees")}</option>
                 {users.map((user) => (
                   <option key={user.idUser} value={String(user.idUser)}>
                     {displayName(user)} ({user.idUser})
@@ -137,26 +139,24 @@ export default function Statistics() {
                 type="checkbox"
                 checked={report}
                 onChange={(event) => setReport(event.target.checked)}
-                style={{ marginRight: "0.5rem" }}
+                style={{ marginInlineEnd: "0.5rem" }}
               />
-              Also email me an AI analysis
+              {t("statistics.reportLabel")}
             </label>
             <span className="field__hint">
-              Leave this off to just read the numbers. Turning it on asks the AI service for a trend
-              analysis and emails it to you.
+              {t("statistics.reportHint")}
             </span>
           </div>
 
           {fanOut ? (
             <Notice kind="error">
-              With every employee selected this sends one analysis per employee, so you will receive one
-              email for each of them.
+              {t("statistics.fanOutWarning")}
             </Notice>
           ) : null}
 
           <div className="row row--end">
             <button type="submit" className="btn btn--primary" disabled={busy}>
-              {busy ? "Computing…" : "Run"}
+              {busy ? t("common.computing") : t("statistics.run")}
             </button>
           </div>
         </form>
@@ -165,21 +165,21 @@ export default function Statistics() {
       {results !== null ? (
         <div className="card">
           <h2 className="card__title">
-            {targetMonth} {everyEmployee ? "- all employees" : `- ${nameOf(Number(idUser))}`}
+            {targetMonth} - {everyEmployee ? t("statistics.allEmployeesLower") : nameOf(Number(idUser))}
           </h2>
           {results.length === 0 ? (
-            <p className="spinner">Nothing recorded for that month.</p>
+            <p className="spinner">{t("statistics.nothing")}</p>
           ) : (
             <table className="table">
               <thead>
                 <tr>
-                  <th>Employee</th>
-                  <th>Month</th>
-                  <th>Work days</th>
-                  <th>Total hours</th>
-                  <th>Overtime hours</th>
-                  <th>Vacation days</th>
-                  <th>Sick days</th>
+                  <th>{t("common.employee")}</th>
+                  <th>{t("common.month")}</th>
+                  <th>{t("statistics.workDays")}</th>
+                  <th>{t("statistics.totalHours")}</th>
+                  <th>{t("statistics.overtime")}</th>
+                  <th>{t("statistics.vacationDays")}</th>
+                  <th>{t("statistics.sickDays")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -202,12 +202,12 @@ export default function Statistics() {
 
       {confirmFanOut ? (
         <Modal
-          title="Email an analysis for every employee?"
+          title={t("statistics.confirmTitle")}
           onClose={() => setConfirmFanOut(false)}
           actions={
             <>
               <button type="button" className="btn" onClick={() => setConfirmFanOut(false)}>
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 type="button"
@@ -218,14 +218,13 @@ export default function Statistics() {
                   run();
                 }}
               >
-                {busy ? "Computing…" : "Send them"}
+                {busy ? t("common.computing") : t("statistics.send")}
               </button>
             </>
           }
         >
           <p style={{ marginTop: 0 }}>
-            The analysis is produced per employee, so this will send you one email for each employee who
-            has activity in {targetMonth}. To get a single analysis, pick one employee instead.
+            {t("statistics.confirmBody", { month: targetMonth })}
           </p>
         </Modal>
       ) : null}

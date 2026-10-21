@@ -11,7 +11,7 @@ export default function Header({ orgName }) {
   const company =
     orgName ||
     profile?.companyName ||
-    (profile ? t("header.organization", { id: profile.tenantId }) : t("header.appName"));
+    (profile ? t("header.organization", { id: profile.tenantId }) : "Attendance");
 
   return (
     <header className="header">

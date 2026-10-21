@@ -5,9 +5,11 @@ import Notice from "../components/Notice.jsx";
 import Field from "../components/Field.jsx";
 import { registerUser } from "../api/accounting.js";
 import { isAdministrator } from "../auth/roles.js";
+import { useI18n } from "../i18n/I18nContext.jsx";
 
 export default function SignUpAdmin() {
   const navigate = useNavigate();
+  const { t, roleLabel } = useI18n();
   const { state } = useLocation();
   const tenantId = state?.tenantId;
   const companyName = state?.companyName;
@@ -27,13 +29,13 @@ export default function SignUpAdmin() {
   function validate() {
     const next = {};
     if (!/^\d+$/.test(form.idUser) || Number(form.idUser) < 1) {
-      next.idUser = "Enter a whole number of 1 or more.";
+      next.idUser = t("validation.wholeNumber");
     }
     if (!/^\S+@\S+\.\S+$/.test(form.email)) {
-      next.email = "Enter a valid email address.";
+      next.email = t("validation.email");
     }
     if (form.password.length < 4) {
-      next.password = "Use at least 4 characters.";
+      next.password = t("validation.passwordLength");
     }
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -68,42 +70,42 @@ export default function SignUpAdmin() {
     return (
       <Layout orgName={companyName}>
         <div className="card card--narrow">
-          <h1 className="card__title">Organization ready</h1>
+          <h1 className="card__title">{t("signupAdmin.readyTitle")}</h1>
           <Notice kind={admin ? "success" : "error"}>
             {admin
-              ? `${companyName} is set up, and user ${created.idUser} is its administrator.`
-              : `User ${created.idUser} was created but did not receive the administrator role. An existing administrator will have to grant it.`}
+              ? t("signupAdmin.ready", { company: companyName, id: created.idUser })
+              : t("signupAdmin.notAdmin", { id: created.idUser })}
           </Notice>
           <div className="clock__state">
             <dl>
-              <dt>Organization</dt>
+              <dt>{t("signupAdmin.organization")}</dt>
               <dd>
-                {companyName} (ID {tenantId})
+                {t("signupAdmin.organizationValue", { company: companyName, id: tenantId })}
               </dd>
-              <dt>ID number</dt>
+              <dt>{t("common.idNumber")}</dt>
               <dd>{created.idUser}</dd>
-              <dt>Roles granted</dt>
+              <dt>{t("signupAdmin.roles")}</dt>
               <dd>
                 {(created.roles || []).map((role) => (
                   <span
                     key={role}
                     className={`tag${role.toUpperCase() === "ADMINISTRATOR" ? " tag--admin" : ""}`}
                   >
-                    {role}
+                    {roleLabel(role)}
                   </span>
                 ))}
               </dd>
             </dl>
           </div>
           <p className="card__hint">
-            Sign in with the company name, that ID number and the password you just chose.
+            {t("signupAdmin.signInHint")}
           </p>
           <button
             type="button"
             className="btn btn--primary btn--block"
             onClick={() => navigate("/login", { state: { companyName, idUser: created.idUser } })}
           >
-            Continue to log in
+            {t("signupAdmin.continue")}
           </button>
         </div>
       </Layout>
@@ -113,29 +115,29 @@ export default function SignUpAdmin() {
   return (
     <Layout orgName={companyName}>
       <div className="card card--narrow">
-        <h1 className="card__title">Step 2 of 2 — the administrator</h1>
+        <h1 className="card__title">{t("signupAdmin.title")}</h1>
         <p className="card__hint">
-          This is the first user of {companyName}, so it is granted the administrator role automatically.
+          {t("signupAdmin.hint", { company: companyName })}
         </p>
         <Notice kind="error">{failure}</Notice>
         <form onSubmit={submit} noValidate>
           <Field
-            label="ID number"
+            label={t("common.idNumber")}
             type="number"
             min="1"
             step="1"
             value={form.idUser}
             onChange={update("idUser")}
             error={errors.idUser}
-            hint="The person's national ID number. This is what they sign in with."
+            hint={t("common.idNumberHint")}
             autoFocus
           />
           <div className="grid-2">
-            <Field label="First name" value={form.firstName} onChange={update("firstName")} autoComplete="given-name" />
-            <Field label="Last name" value={form.lastName} onChange={update("lastName")} autoComplete="family-name" />
+            <Field label={t("common.firstName")} value={form.firstName} onChange={update("firstName")} autoComplete="given-name" />
+            <Field label={t("common.lastName")} value={form.lastName} onChange={update("lastName")} autoComplete="family-name" />
           </div>
           <Field
-            label="Email"
+            label={t("common.email")}
             type="email"
             value={form.email}
             onChange={update("email")}
@@ -143,7 +145,7 @@ export default function SignUpAdmin() {
             autoComplete="email"
           />
           <Field
-            label="Password"
+            label={t("common.password")}
             type="password"
             value={form.password}
             onChange={update("password")}
@@ -151,11 +153,11 @@ export default function SignUpAdmin() {
             autoComplete="new-password"
           />
           <button type="submit" className="btn btn--primary btn--block" disabled={busy}>
-            {busy ? "Creating…" : "Create administrator"}
+            {busy ? t("common.creating") : t("signupAdmin.submit")}
           </button>
         </form>
         <p className="card__hint" style={{ marginTop: "1rem", marginBottom: 0 }}>
-          <Link to="/signup/organization">Back to step 1</Link>
+          <Link to="/signup/organization">{t("signupAdmin.back")}</Link>
         </p>
       </div>
     </Layout>

@@ -1,3 +1,5 @@
+import { currentLocale } from "../i18n/translate.js";
+
 const pad = (value, width = 2) => String(Math.abs(value)).padStart(width, "0");
 
 export function localWorkDate(date = new Date()) {
@@ -51,11 +53,11 @@ export function formatTime(isoString) {
   if (Number.isNaN(parsed.getTime())) {
     return null;
   }
-  return parsed.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  return parsed.toLocaleTimeString(currentLocale(), { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 }
 
 export function formatLongDate(date = new Date()) {
-  return date.toLocaleDateString([], {
+  return date.toLocaleDateString(currentLocale(), {
     weekday: "long",
     year: "numeric",
     month: "long",

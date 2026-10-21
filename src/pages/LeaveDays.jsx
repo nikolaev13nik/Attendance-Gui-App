@@ -9,12 +9,14 @@ import { addLeaveDays, getLeaveDays, getSessions } from "../api/timetracking.js"
 import { daysAgo, localWorkDate } from "../api/time.js";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { displayName } from "../auth/roles.js";
+import { useI18n } from "../i18n/I18nContext.jsx";
 
 const emptyRow = () => ({ date: localWorkDate(), vacation: "1", sick: "0" });
 
 export default function LeaveDays() {
   const navigate = useNavigate();
   const { token, profile } = useAuth();
+  const { t } = useI18n();
   const tenantId = profile.tenantId;
 
   const [users, setUsers] = useState([]);
@@ -75,19 +77,19 @@ export default function LeaveDays() {
     const seen = new Set();
     rows.forEach((row, index) => {
       if (!row.date) {
-        next[index] = "Pick a date.";
+        next[index] = t("common.pickDate");
         return;
       }
       if (seen.has(row.date)) {
-        next[index] = "This date appears more than once.";
+        next[index] = t("leaveDays.error.duplicate");
         return;
       }
       seen.add(row.date);
       const total = Number(row.vacation) + Number(row.sick);
       if (total === 0) {
-        next[index] = "Choose vacation, sick, or both.";
+        next[index] = t("leaveDays.error.none");
       } else if (total > 1) {
-        next[index] = "Vacation and sick together cannot exceed one full day.";
+        next[index] = t("leaveDays.error.max");
       }
     });
     setErrors(next);
@@ -116,9 +118,10 @@ export default function LeaveDays() {
       await addLeaveDays({ tenantId, idUser: Number(idUser), days, token });
       const who = users.find((user) => String(user.idUser) === idUser);
       setSuccess(
-        `Recorded ${days.length} leave ${days.length === 1 ? "day" : "days"} for ${
-          who ? displayName(who) : `user ${idUser}`
-        }.`,
+        t("leaveDays.recorded", {
+          count: days.length,
+          name: who ? displayName(who) : t("leaveDays.user", { id: idUser }),
+        }),
       );
       setRows([emptyRow()]);
       await loadHistory();
@@ -135,28 +138,26 @@ export default function LeaveDays() {
         <div className="row row--split" style={{ marginBottom: "0.75rem" }}>
           <div>
             <h1 className="card__title" style={{ marginBottom: 0 }}>
-              Report leave days
+              {t("home.reportLeave")}
             </h1>
             <p className="card__hint" style={{ marginBottom: 0 }}>
-              Record vacation and sick days for an employee.
+              {t("leaveDays.hint")}
             </p>
           </div>
           <button type="button" className="btn" onClick={() => navigate("/home")}>
-            Back
+            {t("common.back")}
           </button>
         </div>
 
         <Notice kind="error">{failure}</Notice>
         <Notice kind="success">{success}</Notice>
         <Notice kind="info">
-          One record per date: reporting a date again updates what was stored for it rather than adding
-          a second row. Vacation and sickness on the same date cannot exceed a full day together, and the
-          totals appear under employee statistics.
+          {t("leaveDays.info")}
         </Notice>
 
         <form onSubmit={submit} noValidate>
           <Field
-            label="Employee"
+            label={t("common.employee")}
             as="select"
             value={idUser}
             onChange={(event) => setIdUser(event.target.value)}
@@ -171,10 +172,10 @@ export default function LeaveDays() {
           <table className="table" style={{ marginBottom: "0.75rem" }}>
             <thead>
               <tr>
-                <th>Date</th>
-                <th>Vacation</th>
-                <th>Sick</th>
-                <th aria-label="Actions" />
+                <th>{t("common.date")}</th>
+                <th>{t("common.vacation")}</th>
+                <th>{t("common.sickness")}</th>
+                <th aria-label={t("common.actions")} />
               </tr>
             </thead>
             <tbody>
@@ -186,7 +187,7 @@ export default function LeaveDays() {
                       className={`field__input${errors[index] ? " field__input--invalid" : ""}`}
                       value={row.date}
                       onChange={updateRow(index, "date")}
-                      aria-label={`Date for row ${index + 1}`}
+                      aria-label={t("leaveDays.rowDate", { row: index + 1 })}
                     />
                     {errors[index] ? <span className="field__error">{errors[index]}</span> : null}
                   </td>
@@ -195,11 +196,11 @@ export default function LeaveDays() {
                       className="field__input"
                       value={row.vacation}
                       onChange={updateRow(index, "vacation")}
-                      aria-label={`Vacation for row ${index + 1}`}
+                      aria-label={t("leaveDays.rowVacation", { row: index + 1 })}
                     >
                       {AMOUNTS.map((amount) => (
                         <option key={amount.value} value={amount.value}>
-                          {amount.label}
+                          {t(amount.label)}
                         </option>
                       ))}
                     </select>
@@ -209,11 +210,11 @@ export default function LeaveDays() {
                       className="field__input"
                       value={row.sick}
                       onChange={updateRow(index, "sick")}
-                      aria-label={`Sick for row ${index + 1}`}
+                      aria-label={t("leaveDays.rowSick", { row: index + 1 })}
                     >
                       {AMOUNTS.map((amount) => (
                         <option key={amount.value} value={amount.value}>
-                          {amount.label}
+                          {t(amount.label)}
                         </option>
                       ))}
                     </select>
@@ -225,7 +226,7 @@ export default function LeaveDays() {
                       disabled={rows.length === 1}
                       onClick={() => removeRow(index)}
                     >
-                      Remove
+                      {t("leaveDays.remove")}
                     </button>
                   </td>
                 </tr>
@@ -235,31 +236,31 @@ export default function LeaveDays() {
 
           <div className="row row--split">
             <button type="button" className="btn" onClick={addRow}>
-              Add another date
+              {t("leaveDays.addDate")}
             </button>
             <button type="submit" className="btn btn--primary" disabled={busy}>
-              {busy ? "Saving…" : "Record leave days"}
+              {busy ? t("common.saving") : t("leaveDays.submit")}
             </button>
           </div>
         </form>
       </div>
 
       <div className="card">
-        <h2 className="card__title">What is already recorded</h2>
+        <h2 className="card__title">{t("common.alreadyRecorded")}</h2>
         <Notice kind="info">
-          This list is read-only. To change or delete a record, use the Review sessions control panel.
+          {t("leaveDays.readOnly")}
         </Notice>
         <Notice kind="error">{historyFailure}</Notice>
 
         <div className="row" style={{ alignItems: "flex-end", marginBottom: "1rem" }}>
-          <Field label="From" type="date" value={range.startDate} onChange={updateRange("startDate")} />
-          <Field label="To" type="date" value={range.endDate} onChange={updateRange("endDate")} />
+          <Field label={t("common.from")} type="date" value={range.startDate} onChange={updateRange("startDate")} />
+          <Field label={t("common.to")} type="date" value={range.endDate} onChange={updateRange("endDate")} />
         </div>
 
         {recorded === null ? (
-          <p className="spinner">Loading…</p>
+          <p className="spinner">{t("common.loading")}</p>
         ) : leaveEntries(recorded, recordedLeave, sortDesc, startDesc).length === 0 ? (
-          <p className="spinner">Nothing recorded in that range.</p>
+          <p className="spinner">{t("leaveDays.nothing")}</p>
         ) : (
           <SessionTable
             sessions={recorded}

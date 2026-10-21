@@ -1,3 +1,5 @@
+import { translate } from "../i18n/translate.js";
+
 export class ApiError extends Error {
   constructor(status, message, serverMessage, body, unreachable = false) {
     super(message);
@@ -9,18 +11,12 @@ export class ApiError extends Error {
   }
 }
 
-const UNREACHABLE_MESSAGE =
-  "Cannot reach the backend services. The Docker stack is probably stopped or still starting — " +
-  "check it with: docker compose ps";
-
-const OFFLINE_MESSAGE = "Cannot reach the app. The dev server may have stopped — restart it with: npm run dev";
-
 const GENERIC_MESSAGES = {
-  400: "The server rejected that request.",
-  401: "You are not signed in, or your session has expired.",
-  403: "Your role does not allow that action.",
-  404: "That item no longer exists.",
-  409: "That already exists.",
+  400: "api.generic.400",
+  401: "api.generic.401",
+  403: "api.generic.403",
+  404: "api.generic.404",
+  409: "api.generic.409",
 };
 
 function serverMessageOf(payload) {
@@ -65,7 +61,7 @@ export async function request(path, options = {}) {
       body: body === undefined ? undefined : JSON.stringify(body),
     });
   } catch {
-    throw new ApiError(0, OFFLINE_MESSAGE, null, null, true);
+    throw new ApiError(0, translate("api.offline"), null, null, true);
   }
 
   if (response.ok) {
@@ -76,14 +72,16 @@ export async function request(path, options = {}) {
   const serverMessage = serverMessageOf(payload);
 
   if (looksUnreachable(response.status, payload)) {
-    throw new ApiError(response.status, UNREACHABLE_MESSAGE, serverMessage, payload, true);
+    throw new ApiError(response.status, translate("api.unreachable"), serverMessage, payload, true);
   }
 
+  const messageKey = (messages && messages[response.status]) || null;
+  const genericKey = GENERIC_MESSAGES[response.status];
   const message =
-    (messages && messages[response.status]) ||
+    (messageKey && translate(messageKey)) ||
     serverMessage ||
-    GENERIC_MESSAGES[response.status] ||
-    `The server returned an unexpected status ${response.status}.`;
+    (genericKey && translate(genericKey)) ||
+    translate("api.unexpected", { status: response.status });
 
   throw new ApiError(response.status, message, serverMessage, payload, false);
 }

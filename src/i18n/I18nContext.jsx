@@ -1,21 +1,11 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import en from "./en.js";
-import ru from "./ru.js";
-import he from "./he.js";
+import { findLanguage, hasMessage, setCurrentLanguage, translate } from "./translate.js";
+
+export { LANGUAGES } from "./translate.js";
 
 const STORAGE_KEY = "attendance.lang";
 
-export const LANGUAGES = [
-  { code: "en", label: "English", dir: "ltr", messages: en },
-  { code: "ru", label: "Русский", dir: "ltr", messages: ru },
-  { code: "he", label: "עברית", dir: "rtl", messages: he },
-];
-
 const I18nContext = createContext(null);
-
-function findLanguage(code) {
-  return LANGUAGES.find((language) => language.code === code);
-}
 
 function readStored() {
   try {
@@ -34,15 +24,12 @@ function writeStored(code) {
   } catch {}
 }
 
-function format(template, params) {
-  if (!params) {
-    return template;
-  }
-  return template.replace(/\{(\w+)\}/g, (match, name) => (name in params ? String(params[name]) : match));
-}
-
 export function I18nProvider({ children }) {
-  const [lang, setLangState] = useState(readStored);
+  const [lang, setLangState] = useState(() => {
+    const initial = readStored();
+    setCurrentLanguage(initial);
+    return initial;
+  });
   const language = findLanguage(lang);
 
   useEffect(() => {
@@ -52,17 +39,26 @@ export function I18nProvider({ children }) {
 
   const setLang = useCallback((code) => {
     if (findLanguage(code)) {
+      setCurrentLanguage(code);
       writeStored(code);
       setLangState(code);
     }
   }, []);
 
-  const t = useCallback(
-    (key, params) => format(language.messages[key] ?? en[key] ?? key, params),
-    [language],
+  const t = useCallback((key, params) => translate(key, params), [lang]);
+
+  const roleLabel = useCallback(
+    (role) => {
+      const key = `role.${String(role).toUpperCase()}`;
+      return hasMessage(key) ? t(key) : role;
+    },
+    [t],
   );
 
-  const value = useMemo(() => ({ lang, dir: language.dir, setLang, t }), [lang, language, setLang, t]);
+  const value = useMemo(
+    () => ({ lang, dir: language.dir, setLang, t, roleLabel }),
+    [lang, language, setLang, t, roleLabel],
+  );
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 }

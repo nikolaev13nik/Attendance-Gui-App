@@ -21,6 +21,7 @@ import {
 import { daysAgo, localWorkDate, timestampOn, toTimeInput } from "../api/time.js";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { displayName, isAdministrator } from "../auth/roles.js";
+import { useI18n } from "../i18n/I18nContext.jsx";
 
 const TIME_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
@@ -29,6 +30,7 @@ const emptyLeaveForm = (date) => ({ date, sick: "0", vacation: "1" });
 export default function Sessions() {
   const navigate = useNavigate();
   const { token, profile } = useAuth();
+  const { t } = useI18n();
   const tenantId = profile.tenantId;
   const admin = isAdministrator(profile);
   const today = localWorkDate();
@@ -128,21 +130,21 @@ export default function Sessions() {
   function validateTimes({ open, close }, { requireBoth }) {
     const next = {};
     if (open && !TIME_PATTERN.test(open)) {
-      next.open = "Use HH:MM, for example 09:00.";
+      next.open = t("sessions.error.openFormat");
     }
     if (close && !TIME_PATTERN.test(close)) {
-      next.close = "Use HH:MM, for example 17:30.";
+      next.close = t("sessions.error.closeFormat");
     }
     if (requireBoth) {
       if (!open) {
-        next.open = "Enter a start time.";
+        next.open = t("sessions.error.openRequired");
       }
       if (!close) {
-        next.close = "Enter an end time.";
+        next.close = t("sessions.error.closeRequired");
       }
     }
     if (!next.open && !next.close && open && close && open >= close) {
-      next.close = "The end time must be after the start time.";
+      next.close = t("sessions.error.order");
     }
     return next;
   }
@@ -150,15 +152,15 @@ export default function Sessions() {
   function validateLeave({ date, sick, vacation }, { takenDates }) {
     const next = {};
     if (!date) {
-      next.date = "Pick a date.";
+      next.date = t("common.pickDate");
     } else if (takenDates && takenDates.includes(date)) {
-      next.date = "That date already has a leave day. Edit that row instead.";
+      next.date = t("sessions.error.dateTaken");
     }
     const total = Number(sick) + Number(vacation);
     if (total <= 0) {
-      next.vacation = "Record at least half a day of sickness or vacation.";
+      next.vacation = t("sessions.error.leaveMin");
     } else if (total > 1) {
-      next.vacation = "Sickness and vacation together cannot exceed a full day.";
+      next.vacation = t("sessions.error.leaveMax");
     }
     return next;
   }
@@ -181,7 +183,7 @@ export default function Sessions() {
           openSessionDate: editForm.open ? timestampOn(row.workDate, editForm.open) : undefined,
           closeSessionDate: editForm.close ? timestampOn(row.workDate, editForm.close) : undefined,
         }),
-      `Session ${row.id} was updated.`,
+      t("sessions.updated", { id: row.id }),
     );
     if (ok) {
       setEditing(null);
@@ -208,7 +210,7 @@ export default function Sessions() {
           sickAmount: Number(leaveForm.sick),
           vacationAmount: Number(leaveForm.vacation),
         }),
-      `Leave day on ${leaveForm.date} was updated.`,
+      t("sessions.leaveUpdated", { date: leaveForm.date }),
     );
     if (ok) {
       setEditing(null);
@@ -239,7 +241,7 @@ export default function Sessions() {
             },
           ],
         }),
-      `Leave day on ${leaveForm.date} was recorded.`,
+      t("sessions.leaveRecorded", { date: leaveForm.date }),
     );
     if (ok) {
       setRecordingLeave(false);
@@ -251,9 +253,9 @@ export default function Sessions() {
     event.preventDefault();
     const errors = validateTimes(recordForm, { requireBoth: true });
     if (!recordForm.workDate) {
-      errors.workDate = "Pick a date.";
+      errors.workDate = t("common.pickDate");
     } else if (recordForm.workDate > today) {
-      errors.workDate = "The server rejects future dates.";
+      errors.workDate = t("sessions.error.future");
     }
     setRecordErrors(errors);
     if (Object.keys(errors).length > 0) {
@@ -270,7 +272,7 @@ export default function Sessions() {
         await openSession({ tenantId, token, idUser: target, at: new Date(y, m - 1, d, oh, om, 0, 0) });
         await closeSession({ tenantId, token, idUser: target, at: new Date(y, m - 1, d, ch, cm, 0, 0) });
       },
-      `Recorded ${open}–${close} on ${workDate}.`,
+      t("sessions.recorded", { open, close, date: workDate }),
     );
     if (ok) {
       setRecording(false);
@@ -294,7 +296,7 @@ export default function Sessions() {
       {admin ? (
         <>
           <button type="button" className="btn btn--link" onClick={() => openEdit(entry)}>
-            Edit
+            {t("common.edit")}
           </button>
           <button
             type="button"
@@ -305,7 +307,7 @@ export default function Sessions() {
               setConfirmRemove(entry);
             }}
           >
-            Delete
+            {t("common.delete")}
           </button>
         </>
       ) : null}
@@ -318,15 +320,15 @@ export default function Sessions() {
         <div className="row row--split" style={{ marginBottom: "0.75rem" }}>
           <div>
             <h1 className="card__title" style={{ marginBottom: 0 }}>
-              {admin ? "Sessions" : "My sessions"}
+              {admin ? t("sessions.title") : t("home.mySessions")}
             </h1>
             <p className="card__hint" style={{ marginBottom: 0 }}>
-              {admin ? "Review and correct recorded work sessions." : "Your recorded sessions and leave days."}
+              {admin ? t("sessions.adminHint") : t("sessions.userHint")}
             </p>
           </div>
           <div className="row">
             <button type="button" className="btn" onClick={() => navigate("/home")}>
-              Back
+              {t("common.back")}
             </button>
             {admin ? (
               <>
@@ -340,7 +342,7 @@ export default function Sessions() {
                     setRecordingLeave(true);
                   }}
                 >
-                  Add new leave day
+                  {t("sessions.addLeave")}
                 </button>
                 <button
                   type="button"
@@ -350,7 +352,7 @@ export default function Sessions() {
                     setRecording(true);
                   }}
                 >
-                  Add new session
+                  {t("sessions.addSession")}
                 </button>
               </>
             ) : null}
@@ -361,7 +363,7 @@ export default function Sessions() {
           {admin ? (
             <div className="field" style={{ marginBottom: 0, minWidth: "14rem" }}>
               <label className="field__label" htmlFor="filter-user">
-                Employee
+                {t("common.employee")}
               </label>
               <select
                 id="filter-user"
@@ -377,24 +379,25 @@ export default function Sessions() {
               </select>
             </div>
           ) : null}
-          <Field label="From" type="date" value={filters.startDate} onChange={updateFilter("startDate")} />
-          <Field label="To" type="date" value={filters.endDate} onChange={updateFilter("endDate")} />
+          <Field label={t("common.from")} type="date" value={filters.startDate} onChange={updateFilter("startDate")} />
+          <Field label={t("common.to")} type="date" value={filters.endDate} onChange={updateFilter("endDate")} />
         </div>
 
         {modalOpen ? null : <Notice kind="error">{failure}</Notice>}
         <Notice kind="success">{success}</Notice>
         {incompleteIds.size > 0 ? (
           <Notice kind="error">
-            {incompleteIds.size} session{incompleteIds.size === 1 ? " is" : "s are"} incomplete (marked
-            below). Reports for this period will be refused until each one is corrected or removed.
+            {t("sessions.incomplete", { count: incompleteIds.size })}
           </Notice>
         ) : null}
 
         {rows === null ? (
-          <p className="spinner">Loading…</p>
+          <p className="spinner">{t("common.loading")}</p>
         ) : entries.length === 0 ? (
           <p className="spinner">
-            Nothing recorded for {admin && selectedUser ? displayName(selectedUser) : "you"} in that range.
+            {admin && selectedUser
+              ? t("sessions.nothingFor", { name: displayName(selectedUser) })
+              : t("session.nothingForYou")}
           </p>
         ) : (
           <SessionTable
@@ -412,32 +415,32 @@ export default function Sessions() {
 
       {editing && !editingLeave ? (
         <Modal
-          title={`Edit session ${editing.row.id}`}
+          title={t("sessions.editTitle", { id: editing.row.id })}
           onClose={() => setEditing(null)}
           actions={
             <>
               <button type="button" className="btn" onClick={() => setEditing(null)}>
-                Cancel
+                {t("common.cancel")}
               </button>
               <button type="submit" form="edit-session" className="btn btn--primary" disabled={busy !== null}>
-                {busy === "edit" ? "Saving…" : "Save"}
+                {busy === "edit" ? t("common.saving") : t("common.save")}
               </button>
             </>
           }
         >
           <Notice kind="error">{failure}</Notice>
-          <p className="card__hint">Work date {editing.row.workDate}. Times are in your local timezone.</p>
+          <p className="card__hint">{t("sessions.editHint", { date: editing.row.workDate })}</p>
           <form id="edit-session" onSubmit={submitEdit} noValidate>
             <div className="grid-2">
               <Field
-                label="Start"
+                label={t("common.start")}
                 type="time"
                 value={editForm.open}
                 onChange={updateEdit("open")}
                 error={editErrors.open}
               />
               <Field
-                label="End"
+                label={t("common.end")}
                 type="time"
                 value={editForm.close}
                 onChange={updateEdit("close")}
@@ -450,41 +453,41 @@ export default function Sessions() {
 
       {editingLeave ? (
         <Modal
-          title="Edit leave day"
+          title={t("sessions.editLeaveTitle")}
           onClose={() => setEditing(null)}
           actions={
             <>
               <button type="button" className="btn" onClick={() => setEditing(null)}>
-                Cancel
+                {t("common.cancel")}
               </button>
               <button type="submit" form="edit-leave" className="btn btn--primary" disabled={busy !== null}>
-                {busy === "edit-leave" ? "Saving…" : "Save"}
+                {busy === "edit-leave" ? t("common.saving") : t("common.save")}
               </button>
             </>
           }
         >
           <Notice kind="error">{failure}</Notice>
           <p className="card__hint">
-            One record per date. Setting both portions to none is not an edit — delete the row instead.
+            {t("sessions.editLeaveHint")}
           </p>
           <form id="edit-leave" onSubmit={submitLeaveEdit} noValidate>
             <Field
-              label="Date"
+              label={t("common.date")}
               type="date"
               value={leaveForm.date}
               onChange={updateLeave("date")}
               error={leaveErrors.date}
             />
             <div className="grid-2">
-              <Field label="Sickness" as="select" value={leaveForm.sick} onChange={updateLeave("sick")}>
+              <Field label={t("common.sickness")} as="select" value={leaveForm.sick} onChange={updateLeave("sick")}>
                 {LEAVE_AMOUNTS.map((amount) => (
                   <option key={amount.value} value={amount.value}>
-                    {amount.label}
+                    {t(amount.label)}
                   </option>
                 ))}
               </Field>
               <Field
-                label="Vacation"
+                label={t("common.vacation")}
                 as="select"
                 value={leaveForm.vacation}
                 onChange={updateLeave("vacation")}
@@ -492,7 +495,7 @@ export default function Sessions() {
               >
                 {LEAVE_AMOUNTS.map((amount) => (
                   <option key={amount.value} value={amount.value}>
-                    {amount.label}
+                    {t(amount.label)}
                   </option>
                 ))}
               </Field>
@@ -503,42 +506,41 @@ export default function Sessions() {
 
       {recordingLeave ? (
         <Modal
-          title="Add new leave day"
+          title={t("sessions.addLeave")}
           onClose={() => setRecordingLeave(false)}
           actions={
             <>
               <button type="button" className="btn" onClick={() => setRecordingLeave(false)}>
-                Cancel
+                {t("common.cancel")}
               </button>
               <button type="submit" form="record-leave" className="btn btn--primary" disabled={busy !== null}>
-                {busy === "record-leave" ? "Adding…" : "Add leave day"}
+                {busy === "record-leave" ? t("common.adding") : t("sessions.addLeaveSubmit")}
               </button>
             </>
           }
         >
           <p className="card__hint">
-            For {selectedUser ? displayName(selectedUser) : "the selected employee"}. A date may hold half
-            sickness and half vacation, but never more than a full day.
+            {t("sessions.addLeaveHint", { name: selectedUser ? displayName(selectedUser) : t("sessions.selectedEmployee") })}
           </p>
           <Notice kind="error">{failure}</Notice>
           <form id="record-leave" onSubmit={submitLeaveRecord} noValidate>
             <Field
-              label="Date"
+              label={t("common.date")}
               type="date"
               value={leaveForm.date}
               onChange={updateLeave("date")}
               error={leaveErrors.date}
             />
             <div className="grid-2">
-              <Field label="Sickness" as="select" value={leaveForm.sick} onChange={updateLeave("sick")}>
+              <Field label={t("common.sickness")} as="select" value={leaveForm.sick} onChange={updateLeave("sick")}>
                 {LEAVE_AMOUNTS.map((amount) => (
                   <option key={amount.value} value={amount.value}>
-                    {amount.label}
+                    {t(amount.label)}
                   </option>
                 ))}
               </Field>
               <Field
-                label="Vacation"
+                label={t("common.vacation")}
                 as="select"
                 value={leaveForm.vacation}
                 onChange={updateLeave("vacation")}
@@ -546,7 +548,7 @@ export default function Sessions() {
               >
                 {LEAVE_AMOUNTS.map((amount) => (
                   <option key={amount.value} value={amount.value}>
-                    {amount.label}
+                    {t(amount.label)}
                   </option>
                 ))}
               </Field>
@@ -557,27 +559,26 @@ export default function Sessions() {
 
       {recording ? (
         <Modal
-          title="Add new session"
+          title={t("sessions.addSession")}
           onClose={() => setRecording(false)}
           actions={
             <>
               <button type="button" className="btn" onClick={() => setRecording(false)}>
-                Cancel
+                {t("common.cancel")}
               </button>
               <button type="submit" form="record-session" className="btn btn--primary" disabled={busy !== null}>
-                {busy === "record" ? "Adding…" : "Add session"}
+                {busy === "record" ? t("common.adding") : t("sessions.addSessionSubmit")}
               </button>
             </>
           }
         >
           <p className="card__hint">
-            For {selectedUser ? displayName(selectedUser) : "the selected employee"}. As an administrator
-            you may record earlier days; future dates are refused.
+            {t("sessions.addSessionHint", { name: selectedUser ? displayName(selectedUser) : t("sessions.selectedEmployee") })}
           </p>
           <Notice kind="error">{failure}</Notice>
           <form id="record-session" onSubmit={submitRecord} noValidate>
             <Field
-              label="Work date"
+              label={t("sessions.workDate")}
               type="date"
               max={today}
               value={recordForm.workDate}
@@ -586,14 +587,14 @@ export default function Sessions() {
             />
             <div className="grid-2">
               <Field
-                label="Start"
+                label={t("common.start")}
                 type="time"
                 value={recordForm.open}
                 onChange={updateRecord("open")}
                 error={recordErrors.open}
               />
               <Field
-                label="End"
+                label={t("common.end")}
                 type="time"
                 value={recordForm.close}
                 onChange={updateRecord("close")}
@@ -606,12 +607,12 @@ export default function Sessions() {
 
       {confirmRemove ? (
         <Modal
-          title={confirmRemove.kind === "leave" ? "Delete leave day" : "Delete session"}
+          title={confirmRemove.kind === "leave" ? t("sessions.deleteLeaveTitle") : t("sessions.deleteSessionTitle")}
           onClose={() => setConfirmRemove(null)}
           actions={
             <>
               <button type="button" className="btn" onClick={() => setConfirmRemove(null)}>
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 type="button"
@@ -624,26 +625,26 @@ export default function Sessions() {
                     await act(
                       "delete",
                       () => removeLeaveDay({ tenantId, token, id: target.row.id }),
-                      `Leave day on ${target.row.date} was deleted.`,
+                      t("sessions.leaveDeleted", { date: target.row.date }),
                     );
                     return;
                   }
                   await act(
                     "delete",
                     () => removeSession({ tenantId, token, id: target.row.id }),
-                    `Session ${target.row.id} was deleted.`,
+                    t("sessions.deleted", { id: target.row.id }),
                   );
                 }}
               >
-                {busy === "delete" ? "Deleting…" : "Delete"}
+                {busy === "delete" ? t("common.deleting") : t("common.delete")}
               </button>
             </>
           }
         >
           <p style={{ marginTop: 0 }}>
             {confirmRemove.kind === "leave"
-              ? `Delete the leave day on ${confirmRemove.row.date}? This cannot be undone.`
-              : `Delete session ${confirmRemove.row.id} on ${confirmRemove.row.workDate}? This cannot be undone.`}
+              ? t("sessions.deleteLeaveConfirm", { date: confirmRemove.row.date })
+              : t("sessions.deleteSessionConfirm", { id: confirmRemove.row.id, date: confirmRemove.row.workDate })}
           </p>
         </Modal>
       ) : null}

@@ -8,6 +8,7 @@ import { closeSession, getLeaveDays, getSessions, openSession } from "../api/tim
 import { daysAgo, formatLongDate, formatTime, localWorkDate } from "../api/time.js";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { displayName } from "../auth/roles.js";
+import { useI18n } from "../i18n/I18nContext.jsx";
 
 function storageKey(tenantId, idUser, workDate) {
   return `attendance.session.${tenantId}.${idUser}.${workDate}`;
@@ -45,6 +46,7 @@ function statusOf(record) {
 
 export default function Session() {
   const { token, profile } = useAuth();
+  const { t } = useI18n();
   const { idUser, tenantId } = profile;
   const workDate = localWorkDate();
   const key = useMemo(() => storageKey(tenantId, idUser, workDate), [tenantId, idUser, workDate]);
@@ -109,26 +111,25 @@ export default function Session() {
   return (
     <Layout>
       <div className="card card--narrow">
-        <h1 className="card__title">Report session</h1>
+        <h1 className="card__title">{t("home.reportSession")}</h1>
         <p className="clock__date">{formatLongDate()}</p>
 
         <Notice kind="error">{failure}</Notice>
         {status === "orphan" ? (
           <Notice kind="error">
-            This was recorded as a session end with no matching start. An administrator needs to correct
-            it before reports for this period will run.
+            {t("session.orphan")}
           </Notice>
         ) : null}
 
         <div className="clock__state">
           {status === "none" ? (
-            <p style={{ margin: 0 }}>No session recorded yet today.</p>
+            <p style={{ margin: 0 }}>{t("session.none")}</p>
           ) : (
             <dl>
-              <dt>Started</dt>
-              <dd>{openedAt || "not recorded"}</dd>
-              <dt>Ended</dt>
-              <dd>{closedAt || "still open"}</dd>
+              <dt>{t("session.started")}</dt>
+              <dd>{openedAt || t("session.notRecorded")}</dd>
+              <dt>{t("session.ended")}</dt>
+              <dd>{closedAt || t("session.stillOpen")}</dd>
             </dl>
           )}
         </div>
@@ -141,7 +142,7 @@ export default function Session() {
               disabled={busy !== null}
               onClick={() => run(closeSession, "close")}
             >
-              {busy === "close" ? "Recording…" : "Close session"}
+              {busy === "close" ? t("common.recording") : t("session.close")}
             </button>
           ) : (
             <button
@@ -150,14 +151,13 @@ export default function Session() {
               disabled={busy !== null}
               onClick={() => run(openSession, "open")}
             >
-              {busy === "open" ? "Recording…" : "Open session"}
+              {busy === "open" ? t("common.recording") : t("session.open")}
             </button>
           )}
 
           {status === "closed" ? (
             <p className="card__hint" style={{ margin: 0 }}>
-              Your last session ended at {closedAt}. Opening another one records a second period for
-              today, which is how a break is logged.
+              {t("session.closedHint", { time: closedAt })}
             </p>
           ) : null}
 
@@ -168,7 +168,7 @@ export default function Session() {
               disabled={busy !== null}
               onClick={() => run(closeSession, "close")}
             >
-              {busy === "close" ? "Recording…" : "Close session"}
+              {busy === "close" ? t("common.recording") : t("session.close")}
             </button>
           ) : null}
         </div>
@@ -176,35 +176,29 @@ export default function Session() {
         <hr style={{ margin: "1.5rem 0 1rem", border: "none", borderTop: "1px solid var(--border)" }} />
 
         <MessageAdmin
-          heading="Something wrong with today?"
-          hint="If you forgot to open a session, or the times above are wrong, ask an administrator to correct the record for you."
-          subject={`Attendance correction for ${workDate} - ${displayName(profile)} (ID ${idUser})`}
-          bodyTemplate={
-            `Hello,\n\nMy attendance record for ${workDate} needs correcting.\n\n` +
-            `I forgot to open my session this morning, so I cannot close it now. ` +
-            `Please record the correct hours for me.\n\n` +
-            `Start time: \nEnd time: `
-          }
+          heading={t("session.wrongHeading")}
+          hint={t("session.wrongHint")}
+          subject={t("session.mailSubject", { date: workDate, name: displayName(profile), id: idUser })}
+          bodyTemplate={t("session.mailBody", { date: workDate })}
         />
       </div>
 
       <div className="card">
-        <h2 className="card__title">What is already recorded</h2>
+        <h2 className="card__title">{t("common.alreadyRecorded")}</h2>
         <Notice kind="info">
-          This list is read-only. To change or delete a record, an administrator has to use the Review
-          sessions control panel.
+          {t("session.readOnly")}
         </Notice>
         <Notice kind="error">{historyFailure}</Notice>
 
         <div className="row" style={{ alignItems: "flex-end", marginBottom: "1rem" }}>
-          <Field label="From" type="date" value={range.startDate} onChange={updateRange("startDate")} />
-          <Field label="To" type="date" value={range.endDate} onChange={updateRange("endDate")} />
+          <Field label={t("common.from")} type="date" value={range.startDate} onChange={updateRange("startDate")} />
+          <Field label={t("common.to")} type="date" value={range.endDate} onChange={updateRange("endDate")} />
         </div>
 
         {rows === null ? (
-          <p className="spinner">Loading…</p>
+          <p className="spinner">{t("common.loading")}</p>
         ) : entries.length === 0 ? (
-          <p className="spinner">Nothing recorded for you in that range.</p>
+          <p className="spinner">{t("session.nothingForYou")}</p>
         ) : (
           <SessionTable
             sessions={rows}
