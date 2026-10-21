@@ -9,14 +9,14 @@ import { addLeaveDays, getLeaveDays, getSessions } from "../api/timetracking.js"
 import { daysAgo, localWorkDate } from "../api/time.js";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { displayName } from "../auth/roles.js";
-import { useI18n } from "../i18n/I18nContext.jsx";
+import { msg, useI18n } from "../i18n/I18nContext.jsx";
 
 const emptyRow = () => ({ date: localWorkDate(), vacation: "1", sick: "0" });
 
 export default function LeaveDays() {
   const navigate = useNavigate();
   const { token, profile } = useAuth();
-  const { t } = useI18n();
+  const { t, text } = useI18n();
   const tenantId = profile.tenantId;
 
   const [users, setUsers] = useState([]);
@@ -36,7 +36,7 @@ export default function LeaveDays() {
   useEffect(() => {
     listUsers({ tenantId, token })
       .then((list) => setUsers(list || []))
-      .catch((error) => setFailure(error.message));
+      .catch((error) => setFailure(error));
   }, [tenantId, token]);
 
   const loadHistory = useCallback(async () => {
@@ -54,7 +54,7 @@ export default function LeaveDays() {
       setRecorded(sessions || []);
       setRecordedLeave(leaveDays || []);
     } catch (error) {
-      setHistoryFailure(error.message);
+      setHistoryFailure(error);
       setRecorded([]);
       setRecordedLeave([]);
     }
@@ -77,19 +77,19 @@ export default function LeaveDays() {
     const seen = new Set();
     rows.forEach((row, index) => {
       if (!row.date) {
-        next[index] = t("common.pickDate");
+        next[index] = msg("common.pickDate");
         return;
       }
       if (seen.has(row.date)) {
-        next[index] = t("leaveDays.error.duplicate");
+        next[index] = msg("leaveDays.error.duplicate");
         return;
       }
       seen.add(row.date);
       const total = Number(row.vacation) + Number(row.sick);
       if (total === 0) {
-        next[index] = t("leaveDays.error.none");
+        next[index] = msg("leaveDays.error.none");
       } else if (total > 1) {
-        next[index] = t("leaveDays.error.max");
+        next[index] = msg("leaveDays.error.max");
       }
     });
     setErrors(next);
@@ -118,15 +118,15 @@ export default function LeaveDays() {
       await addLeaveDays({ tenantId, idUser: Number(idUser), days, token });
       const who = users.find((user) => String(user.idUser) === idUser);
       setSuccess(
-        t("leaveDays.recorded", {
+        msg("leaveDays.recorded", {
           count: days.length,
-          name: who ? displayName(who) : t("leaveDays.user", { id: idUser }),
+          name: who ? displayName(who) : msg("leaveDays.user", { id: idUser }),
         }),
       );
       setRows([emptyRow()]);
       await loadHistory();
     } catch (error) {
-      setFailure(error.message);
+      setFailure(error);
     } finally {
       setBusy(false);
     }
@@ -189,7 +189,7 @@ export default function LeaveDays() {
                       onChange={updateRow(index, "date")}
                       aria-label={t("leaveDays.rowDate", { row: index + 1 })}
                     />
-                    {errors[index] ? <span className="field__error">{errors[index]}</span> : null}
+                    {errors[index] ? <span className="field__error">{text(errors[index])}</span> : null}
                   </td>
                   <td>
                     <select

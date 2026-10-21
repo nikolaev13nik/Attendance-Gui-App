@@ -1,8 +1,12 @@
-import { translate } from "../i18n/translate.js";
+import { msg, translate } from "../i18n/translate.js";
 
 export class ApiError extends Error {
   constructor(status, message, serverMessage, body, unreachable = false) {
-    super(message);
+    super(typeof message === "string" ? message : translate(message.i18nKey, message.params));
+    if (typeof message !== "string") {
+      this.i18nKey = message.i18nKey;
+      this.params = message.params;
+    }
     this.name = "ApiError";
     this.status = status;
     this.serverMessage = serverMessage;
@@ -61,7 +65,7 @@ export async function request(path, options = {}) {
       body: body === undefined ? undefined : JSON.stringify(body),
     });
   } catch {
-    throw new ApiError(0, translate("api.offline"), null, null, true);
+    throw new ApiError(0, msg("api.offline"), null, null, true);
   }
 
   if (response.ok) {
@@ -72,16 +76,16 @@ export async function request(path, options = {}) {
   const serverMessage = serverMessageOf(payload);
 
   if (looksUnreachable(response.status, payload)) {
-    throw new ApiError(response.status, translate("api.unreachable"), serverMessage, payload, true);
+    throw new ApiError(response.status, msg("api.unreachable"), serverMessage, payload, true);
   }
 
   const messageKey = (messages && messages[response.status]) || null;
   const genericKey = GENERIC_MESSAGES[response.status];
   const message =
-    (messageKey && translate(messageKey)) ||
+    (messageKey && msg(messageKey)) ||
     serverMessage ||
-    (genericKey && translate(genericKey)) ||
-    translate("api.unexpected", { status: response.status });
+    (genericKey && msg(genericKey)) ||
+    msg("api.unexpected", { status: response.status });
 
   throw new ApiError(response.status, message, serverMessage, payload, false);
 }

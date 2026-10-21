@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { findLanguage, hasMessage, setCurrentLanguage, translate } from "./translate.js";
+import { findLanguage, hasMessage, resolveMessage, setCurrentLanguage, translate } from "./translate.js";
 
-export { LANGUAGES } from "./translate.js";
+export { LANGUAGES, msg } from "./translate.js";
 
 const STORAGE_KEY = "attendance.lang";
 
@@ -55,9 +55,11 @@ export function I18nProvider({ children }) {
     [t],
   );
 
+  const text = useCallback((value) => resolveMessage(value), [lang]);
+
   const value = useMemo(
-    () => ({ lang, dir: language.dir, setLang, t, roleLabel }),
-    [lang, language, setLang, t, roleLabel],
+    () => ({ lang, dir: language.dir, setLang, t, text, roleLabel }),
+    [lang, language, setLang, t, text, roleLabel],
   );
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;

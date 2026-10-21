@@ -21,7 +21,7 @@ import {
 import { daysAgo, localWorkDate, timestampOn, toTimeInput } from "../api/time.js";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { displayName, isAdministrator } from "../auth/roles.js";
-import { useI18n } from "../i18n/I18nContext.jsx";
+import { msg, useI18n } from "../i18n/I18nContext.jsx";
 
 const TIME_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
@@ -66,7 +66,7 @@ export default function Sessions() {
     }
     listUsers({ tenantId, token })
       .then((list) => setUsers(list || []))
-      .catch((error) => setFailure(error.message));
+      .catch((error) => setFailure(error));
   }, [admin, tenantId, token]);
 
   const load = useCallback(async () => {
@@ -83,7 +83,7 @@ export default function Sessions() {
       setLeave(leaveDays || []);
       setIncompleteIds(new Set((incomplete || []).map((row) => row.id)));
     } catch (error) {
-      setFailure(error.message);
+      setFailure(error);
       setRows([]);
       setLeave([]);
       setIncompleteIds(new Set());
@@ -104,7 +104,7 @@ export default function Sessions() {
       setSuccess(message);
       return true;
     } catch (error) {
-      setFailure(error.message);
+      setFailure(error);
       return false;
     } finally {
       setBusy(null);
@@ -130,21 +130,21 @@ export default function Sessions() {
   function validateTimes({ open, close }, { requireBoth }) {
     const next = {};
     if (open && !TIME_PATTERN.test(open)) {
-      next.open = t("sessions.error.openFormat");
+      next.open = msg("sessions.error.openFormat");
     }
     if (close && !TIME_PATTERN.test(close)) {
-      next.close = t("sessions.error.closeFormat");
+      next.close = msg("sessions.error.closeFormat");
     }
     if (requireBoth) {
       if (!open) {
-        next.open = t("sessions.error.openRequired");
+        next.open = msg("sessions.error.openRequired");
       }
       if (!close) {
-        next.close = t("sessions.error.closeRequired");
+        next.close = msg("sessions.error.closeRequired");
       }
     }
     if (!next.open && !next.close && open && close && open >= close) {
-      next.close = t("sessions.error.order");
+      next.close = msg("sessions.error.order");
     }
     return next;
   }
@@ -152,15 +152,15 @@ export default function Sessions() {
   function validateLeave({ date, sick, vacation }, { takenDates }) {
     const next = {};
     if (!date) {
-      next.date = t("common.pickDate");
+      next.date = msg("common.pickDate");
     } else if (takenDates && takenDates.includes(date)) {
-      next.date = t("sessions.error.dateTaken");
+      next.date = msg("sessions.error.dateTaken");
     }
     const total = Number(sick) + Number(vacation);
     if (total <= 0) {
-      next.vacation = t("sessions.error.leaveMin");
+      next.vacation = msg("sessions.error.leaveMin");
     } else if (total > 1) {
-      next.vacation = t("sessions.error.leaveMax");
+      next.vacation = msg("sessions.error.leaveMax");
     }
     return next;
   }
@@ -183,7 +183,7 @@ export default function Sessions() {
           openSessionDate: editForm.open ? timestampOn(row.workDate, editForm.open) : undefined,
           closeSessionDate: editForm.close ? timestampOn(row.workDate, editForm.close) : undefined,
         }),
-      t("sessions.updated", { id: row.id }),
+      msg("sessions.updated", { id: row.id }),
     );
     if (ok) {
       setEditing(null);
@@ -210,7 +210,7 @@ export default function Sessions() {
           sickAmount: Number(leaveForm.sick),
           vacationAmount: Number(leaveForm.vacation),
         }),
-      t("sessions.leaveUpdated", { date: leaveForm.date }),
+      msg("sessions.leaveUpdated", { date: leaveForm.date }),
     );
     if (ok) {
       setEditing(null);
@@ -241,7 +241,7 @@ export default function Sessions() {
             },
           ],
         }),
-      t("sessions.leaveRecorded", { date: leaveForm.date }),
+      msg("sessions.leaveRecorded", { date: leaveForm.date }),
     );
     if (ok) {
       setRecordingLeave(false);
@@ -253,9 +253,9 @@ export default function Sessions() {
     event.preventDefault();
     const errors = validateTimes(recordForm, { requireBoth: true });
     if (!recordForm.workDate) {
-      errors.workDate = t("common.pickDate");
+      errors.workDate = msg("common.pickDate");
     } else if (recordForm.workDate > today) {
-      errors.workDate = t("sessions.error.future");
+      errors.workDate = msg("sessions.error.future");
     }
     setRecordErrors(errors);
     if (Object.keys(errors).length > 0) {
@@ -272,7 +272,7 @@ export default function Sessions() {
         await openSession({ tenantId, token, idUser: target, at: new Date(y, m - 1, d, oh, om, 0, 0) });
         await closeSession({ tenantId, token, idUser: target, at: new Date(y, m - 1, d, ch, cm, 0, 0) });
       },
-      t("sessions.recorded", { open, close, date: workDate }),
+      msg("sessions.recorded", { open, close, date: workDate }),
     );
     if (ok) {
       setRecording(false);
@@ -625,14 +625,14 @@ export default function Sessions() {
                     await act(
                       "delete",
                       () => removeLeaveDay({ tenantId, token, id: target.row.id }),
-                      t("sessions.leaveDeleted", { date: target.row.date }),
+                      msg("sessions.leaveDeleted", { date: target.row.date }),
                     );
                     return;
                   }
                   await act(
                     "delete",
                     () => removeSession({ tenantId, token, id: target.row.id }),
-                    t("sessions.deleted", { id: target.row.id }),
+                    msg("sessions.deleted", { id: target.row.id }),
                   );
                 }}
               >

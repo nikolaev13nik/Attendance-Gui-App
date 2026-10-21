@@ -1,6 +1,8 @@
 import { useId } from "react";
+import { useI18n } from "../i18n/I18nContext.jsx";
 
 export default function Field({ label, hint, error, id, as = "input", children, ...controlProps }) {
+  const { text } = useI18n();
   const generatedId = useId();
   const inputId = id || generatedId;
   const className = `field__input${error ? " field__input--invalid" : ""}`;
@@ -26,7 +28,7 @@ export default function Field({ label, hint, error, id, as = "input", children, 
       )}
       {error ? (
         <span className="field__error" id={`${inputId}-error`}>
-          {error}
+          {text(error)}
         </span>
       ) : null}
       {!error && hint ? <span className="field__hint">{hint}</span> : null}

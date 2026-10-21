@@ -4,7 +4,7 @@ import Layout from "../components/Layout.jsx";
 import Notice from "../components/Notice.jsx";
 import Field from "../components/Field.jsx";
 import { addTenant } from "../api/accounting.js";
-import { useI18n } from "../i18n/I18nContext.jsx";
+import { msg, useI18n } from "../i18n/I18nContext.jsx";
 
 export default function SignUpOrg() {
   const navigate = useNavigate();
@@ -19,16 +19,16 @@ export default function SignUpOrg() {
   function validate() {
     const next = {};
     if (!form.companyName.trim()) {
-      next.companyName = t("signupOrg.error.companyName");
+      next.companyName = msg("signupOrg.error.companyName");
     }
     if (!form.contactName.trim()) {
-      next.contactName = t("signupOrg.error.contactName");
+      next.contactName = msg("signupOrg.error.contactName");
     }
     if (!form.phone.trim()) {
-      next.phone = t("signupOrg.error.phone");
+      next.phone = msg("signupOrg.error.phone");
     }
     if (!/^\S+@\S+\.\S+$/.test(form.email)) {
-      next.email = t("validation.email");
+      next.email = msg("validation.email");
     }
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -52,7 +52,7 @@ export default function SignUpOrg() {
         state: { tenantId: tenant.tenantId, companyName: tenant.companyName },
       });
     } catch (error) {
-      setFailure(error.message);
+      setFailure(error);
     } finally {
       setBusy(false);
     }

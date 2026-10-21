@@ -4,7 +4,7 @@ import Layout from "../components/Layout.jsx";
 import Notice from "../components/Notice.jsx";
 import Field from "../components/Field.jsx";
 import { useAuth } from "../auth/AuthContext.jsx";
-import { useI18n } from "../i18n/I18nContext.jsx";
+import { msg, useI18n } from "../i18n/I18nContext.jsx";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -39,16 +39,16 @@ export default function Login() {
     const next = {};
     if (by === "id") {
       if (!/^\d+$/.test(form.tenantId)) {
-        next.tenantId = t("login.error.tenantId");
+        next.tenantId = msg("login.error.tenantId");
       }
     } else if (!form.companyName.trim()) {
-      next.companyName = t("login.error.companyName");
+      next.companyName = msg("login.error.companyName");
     }
     if (!/^\d+$/.test(form.idUser)) {
-      next.idUser = t("login.error.idUser");
+      next.idUser = msg("login.error.idUser");
     }
     if (!form.password) {
-      next.password = t("login.error.password");
+      next.password = msg("login.error.password");
     }
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -70,7 +70,7 @@ export default function Login() {
       });
       navigate(state?.from || "/home", { replace: true });
     } catch (error) {
-      setFailure(error.message);
+      setFailure(error);
     } finally {
       setBusy(false);
     }

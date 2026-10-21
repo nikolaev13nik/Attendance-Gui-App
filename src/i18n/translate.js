@@ -34,6 +34,24 @@ function pluralKey(key, count) {
   return lookup(`${key}.other`) !== undefined ? `${key}.other` : key;
 }
 
+export function msg(key, params) {
+  return { i18nKey: key, params };
+}
+
+function isDescriptor(value) {
+  return Boolean(value && typeof value === "object" && typeof value.i18nKey === "string");
+}
+
+export function resolveMessage(value) {
+  if (isDescriptor(value)) {
+    return translate(value.i18nKey, value.params);
+  }
+  if (value instanceof Error) {
+    return value.message;
+  }
+  return value;
+}
+
 export function hasMessage(key) {
   return lookup(key) !== undefined;
 }
@@ -44,5 +62,7 @@ export function translate(key, params) {
   if (!params) {
     return template;
   }
-  return template.replace(/\{(\w+)\}/g, (match, name) => (name in params ? String(params[name]) : match));
+  return template.replace(/\{(\w+)\}/g, (match, name) =>
+    name in params ? String(resolveMessage(params[name])) : match,
+  );
 }

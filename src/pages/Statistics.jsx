@@ -9,7 +9,7 @@ import { getMonthStatistic } from "../api/timetracking.js";
 import { localMonth } from "../api/time.js";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { displayName } from "../auth/roles.js";
-import { useI18n } from "../i18n/I18nContext.jsx";
+import { msg, useI18n } from "../i18n/I18nContext.jsx";
 
 const ALL_EMPLOYEES = "";
 
@@ -40,7 +40,7 @@ export default function Statistics() {
   useEffect(() => {
     listUsers({ tenantId, token })
       .then((list) => setUsers(list || []))
-      .catch((error) => setFailure(error.message));
+      .catch((error) => setFailure(error));
   }, [tenantId, token]);
 
   const everyEmployee = idUser === ALL_EMPLOYEES;
@@ -55,11 +55,11 @@ export default function Statistics() {
       setResults(body || []);
       setSuccess(
         report
-          ? t("statistics.computedReport")
-          : t("statistics.computed"),
+          ? msg("statistics.computedReport")
+          : msg("statistics.computed"),
       );
     } catch (error) {
-      setFailure(error.message);
+      setFailure(error);
       setResults([]);
     } finally {
       setBusy(false);
@@ -69,7 +69,7 @@ export default function Statistics() {
   function submit(event) {
     event.preventDefault();
     if (!targetMonth) {
-      setFailure(t("statistics.pickMonth"));
+      setFailure(msg("statistics.pickMonth"));
       return;
     }
     if (fanOut) {

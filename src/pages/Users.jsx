@@ -7,7 +7,7 @@ import Modal from "../components/Modal.jsx";
 import { addRole, deleteUser, editUser, listUsers, registerUser, removeRole } from "../api/accounting.js";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { ADMINISTRATOR, displayName, isAdministrator } from "../auth/roles.js";
-import { useI18n } from "../i18n/I18nContext.jsx";
+import { msg, useI18n } from "../i18n/I18nContext.jsx";
 
 const EMPTY_CREATE = { idUser: "", firstName: "", lastName: "", email: "", password: "" };
 
@@ -35,7 +35,7 @@ export default function Users() {
       const rows = await listUsers({ tenantId, token });
       setUsers(rows || []);
     } catch (error) {
-      setFailure(error.message);
+      setFailure(error);
       setUsers([]);
     }
   }, [tenantId, token]);
@@ -54,7 +54,7 @@ export default function Users() {
       setSuccess(message);
       return true;
     } catch (error) {
-      setFailure(error.message);
+      setFailure(error);
       return false;
     } finally {
       setBusy(null);
@@ -64,13 +64,13 @@ export default function Users() {
   function validateCreate() {
     const next = {};
     if (!/^\d+$/.test(createForm.idUser) || Number(createForm.idUser) < 1) {
-      next.idUser = t("validation.wholeNumber");
+      next.idUser = msg("validation.wholeNumber");
     }
     if (!/^\S+@\S+\.\S+$/.test(createForm.email)) {
-      next.email = t("validation.email");
+      next.email = msg("validation.email");
     }
     if (createForm.password.length < 4) {
-      next.password = t("validation.passwordLength");
+      next.password = msg("validation.passwordLength");
     }
     setCreateErrors(next);
     return Object.keys(next).length === 0;
@@ -92,7 +92,7 @@ export default function Users() {
           firstName: createForm.firstName.trim() || undefined,
           lastName: createForm.lastName.trim() || undefined,
         }),
-      t("users.added", { id: createForm.idUser }),
+      msg("users.added", { id: createForm.idUser }),
     );
     if (ok) {
       setCreating(false);
@@ -115,7 +115,7 @@ export default function Users() {
           email: editForm.email.trim() || undefined,
           password: editForm.password || undefined,
         }),
-      t("users.updated", { id: target.idUser }),
+      msg("users.updated", { id: target.idUser }),
     );
     if (ok) {
       setEditing(null);
@@ -356,8 +356,8 @@ export default function Users() {
                         ? addRole({ idUser: user.idUser, role: ADMINISTRATOR, token })
                         : removeRole({ idUser: user.idUser, role: ADMINISTRATOR, token }),
                     grant
-                      ? t("users.granted", { id: user.idUser })
-                      : t("users.revoked", { id: user.idUser }),
+                      ? msg("users.granted", { id: user.idUser })
+                      : msg("users.revoked", { id: user.idUser }),
                   );
                 }}
               >
@@ -393,7 +393,7 @@ export default function Users() {
                   await act(
                     "delete",
                     () => deleteUser({ idUser: target.idUser, token }),
-                    t("users.deleted", { id: target.idUser }),
+                    msg("users.deleted", { id: target.idUser }),
                   );
                 }}
               >

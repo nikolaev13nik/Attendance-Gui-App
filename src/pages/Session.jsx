@@ -74,7 +74,7 @@ export default function Session() {
       setRows(sessions || []);
       setLeave(leaveDays || []);
     } catch (error) {
-      setHistoryFailure(error.message);
+      setHistoryFailure(error);
       setRows([]);
       setLeave([]);
     }
@@ -94,7 +94,7 @@ export default function Session() {
         setRecord(next);
         await loadHistory();
       } catch (error) {
-        setFailure(error.message);
+        setFailure(error);
       } finally {
         setBusy(null);
       }

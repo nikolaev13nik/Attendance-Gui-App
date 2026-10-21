@@ -5,7 +5,7 @@ import Notice from "../components/Notice.jsx";
 import Field from "../components/Field.jsx";
 import { registerUser } from "../api/accounting.js";
 import { isAdministrator } from "../auth/roles.js";
-import { useI18n } from "../i18n/I18nContext.jsx";
+import { msg, useI18n } from "../i18n/I18nContext.jsx";
 
 export default function SignUpAdmin() {
   const navigate = useNavigate();
@@ -29,13 +29,13 @@ export default function SignUpAdmin() {
   function validate() {
     const next = {};
     if (!/^\d+$/.test(form.idUser) || Number(form.idUser) < 1) {
-      next.idUser = t("validation.wholeNumber");
+      next.idUser = msg("validation.wholeNumber");
     }
     if (!/^\S+@\S+\.\S+$/.test(form.email)) {
-      next.email = t("validation.email");
+      next.email = msg("validation.email");
     }
     if (form.password.length < 4) {
-      next.password = t("validation.passwordLength");
+      next.password = msg("validation.passwordLength");
     }
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -59,7 +59,7 @@ export default function SignUpAdmin() {
       });
       setCreated(profile);
     } catch (error) {
-      setFailure(error.message);
+      setFailure(error);
     } finally {
       setBusy(false);
     }
