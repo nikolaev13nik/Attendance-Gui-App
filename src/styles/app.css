@@ -11,6 +11,14 @@
 }
 
 @font-face {
+  font-family: "Noto Serif Hebrew";
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("../assets/fonts/NotoSerifHebrew/NotoSerifHebrew-hebrew.woff2") format("woff2");
+  unicode-range: U+0307-0308, U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F;
+}
+
+@font-face {
   font-family: "Merienda";
   font-weight: 700;
   src: url("../assets/fonts/Merienda/Merienda-Bold.ttf") format("truetype");
@@ -41,7 +49,7 @@ body {
   margin: 0;
   min-height: 100vh;
   color: var(--text);
-  font-family: "Noto Serif", Georgia, serif;
+  font-family: "Noto Serif", "Noto Serif Hebrew", Georgia, serif;
   background: radial-gradient(ellipse at 32% 38%, #ffffff 0%, #f6f7f9 42%, #e3e5e9 72%, #d2d5db 100%);
   background-attachment: fixed;
 }
@@ -74,7 +82,7 @@ a {
 }
 
 .header__org {
-  font-family: "Merienda", "Noto Serif", serif;
+  font-family: "Merienda", "Noto Serif", "Noto Serif Hebrew", serif;
   font-size: 1.6rem;
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -305,7 +313,7 @@ a {
 
 .table th,
 .table td {
-  text-align: left;
+  text-align: start;
   padding: 0.55rem 0.5rem;
   border-bottom: 1px solid var(--border);
   vertical-align: middle;
@@ -337,7 +345,7 @@ a {
   border-radius: 999px;
   background: var(--surface-muted);
   color: var(--text-muted);
-  margin-right: 0.25rem;
+  margin-inline-end: 0.25rem;
 }
 
 .tag--admin {
@@ -413,6 +421,12 @@ a {
   .header__org {
     font-size: 1.3rem;
   }
+}
+
+[dir="rtl"] .field__input[type="email"],
+[dir="rtl"] .field__input[type="tel"] {
+  direction: ltr;
+  text-align: right;
 }
 
 textarea.field__input {
