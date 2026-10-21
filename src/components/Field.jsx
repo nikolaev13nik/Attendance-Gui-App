@@ -1,5 +1,8 @@
+import { useId } from "react";
+
 export default function Field({ label, hint, error, id, as = "input", children, ...controlProps }) {
-  const inputId = id || `field-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+  const generatedId = useId();
+  const inputId = id || generatedId;
   const className = `field__input${error ? " field__input--invalid" : ""}`;
   const shared = {
     id: inputId,
