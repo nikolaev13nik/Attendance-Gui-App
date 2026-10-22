@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout.jsx";
+import Notice from "../components/Notice.jsx";
 import { useI18n } from "../i18n/I18nContext.jsx";
 
 export default function Landing() {
@@ -10,9 +11,8 @@ export default function Landing() {
     <Layout>
       <div className="card card--narrow">
         <h1 className="card__title">Attendance</h1>
-        <p className="card__hint">
-          {t("landing.hint")}
-        </p>
+        <p className="card__hint">{t("landing.about")}</p>
+        <Notice kind="info">{t("landing.firstVisit")}</Notice>
         <div className="stack">
           <button
             type="button"

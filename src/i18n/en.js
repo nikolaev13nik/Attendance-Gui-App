@@ -71,7 +71,8 @@ export default {
   "header.signOut": "Sign out",
   "header.organization": "Organization #{id}",
 
-  "landing.hint": "Sign in to record your work sessions, or set up a new organization if this is your first visit.",
+  "landing.about": "Attendance helps an organization keep track of its employees’ working hours, vacation and sick days in one place.",
+  "landing.firstVisit": "First time here? Click “Sign up a new organization”. Step 1: fill in your organization’s details. Step 2: create the first user, who becomes the administrator. Then sign in and add your employees, so they can record their own working hours.",
   "landing.signUp": "Sign up a new organization",
 
   "login.title": "Log in",
