@@ -51,6 +51,18 @@ function portion(amount) {
   return amount - whole === 0.5 ? `${whole || ""}½` : String(amount);
 }
 
+export function alternateDays(entries) {
+  let previous;
+  let alternate = true;
+  return entries.map((entry) => {
+    if (entry.date !== previous) {
+      alternate = !alternate;
+      previous = entry.date;
+    }
+    return alternate;
+  });
+}
+
 export default function SessionTable({
   sessions,
   leave,
@@ -67,6 +79,7 @@ export default function SessionTable({
   const [config, setConfig] = useState(DEFAULT_CONFIG);
   const hours = dailyHours(sessions, config.overtimeDailyThresholdMinutes);
   const totals = tableTotals(sessions, leave, hours);
+  const shaded = alternateDays(entries);
 
   useEffect(() => {
     let active = true;
@@ -112,9 +125,9 @@ export default function SessionTable({
         </tr>
       </thead>
       <tbody>
-        {entries.map((entry) =>
+        {entries.map((entry, index) =>
           entry.kind === "leave" ? (
-            <tr key={`leave-${entry.row.id}`}>
+            <tr key={`leave-${entry.row.id}`} className={shaded[index] ? "table__day--alt" : undefined}>
               <td>{t("table.leaveDay")}</td>
               <td className="table__nowrap">{entry.row.date}</td>
               <td>&mdash;</td>
@@ -126,7 +139,7 @@ export default function SessionTable({
               {actions ? <td>{actions(entry)}</td> : null}
             </tr>
           ) : (
-            <tr key={`session-${entry.row.id}`}>
+            <tr key={`session-${entry.row.id}`} className={shaded[index] ? "table__day--alt" : undefined}>
               <td>
                 {t("table.workHours")}
                 {needsFixing.has(entry.row.id) ? (

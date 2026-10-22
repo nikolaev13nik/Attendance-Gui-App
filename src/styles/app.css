@@ -30,6 +30,7 @@
   --brand-contrast: #ffffff;
   --surface: #ffffff;
   --surface-muted: #edf0f5;
+  --row-alt: #f3f4f6;
   --border: #d4d7dd;
   --text: #22242a;
   --text-muted: #5d6270;
@@ -328,6 +329,10 @@ a {
 
 .table tr:last-child td {
   border-bottom: none;
+}
+
+.table__day--alt td {
+  background: var(--row-alt);
 }
 
 .table__nowrap {
