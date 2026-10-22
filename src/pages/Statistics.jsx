@@ -170,32 +170,34 @@ export default function Statistics() {
           {results.length === 0 ? (
             <p className="spinner">{t("statistics.nothing")}</p>
           ) : (
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>{t("common.employee")}</th>
-                  <th>{t("common.month")}</th>
-                  <th>{t("statistics.workDays")}</th>
-                  <th>{t("statistics.totalHours")}</th>
-                  <th>{t("statistics.overtime")}</th>
-                  <th>{t("statistics.vacationDays")}</th>
-                  <th>{t("statistics.sickDays")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {results.map((stat) => (
-                  <tr key={stat.userId}>
-                    <td>{nameOf(stat.userId)}</td>
-                    <td>{stat.yearMonth}</td>
-                    <td>{days(stat.workDays)}</td>
-                    <td>{hours(stat.totalWorkHours)}</td>
-                    <td>{hours(stat.overtimeHours)}</td>
-                    <td>{days(stat.vacationDays)}</td>
-                    <td>{days(stat.sickDays)}</td>
+            <div className="table-wrap">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>{t("common.employee")}</th>
+                    <th>{t("common.month")}</th>
+                    <th>{t("statistics.workDays")}</th>
+                    <th>{t("statistics.totalHours")}</th>
+                    <th>{t("statistics.overtime")}</th>
+                    <th>{t("statistics.vacationDays")}</th>
+                    <th>{t("statistics.sickDays")}</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {results.map((stat) => (
+                    <tr key={stat.userId}>
+                      <td>{nameOf(stat.userId)}</td>
+                      <td>{stat.yearMonth}</td>
+                      <td>{days(stat.workDays)}</td>
+                      <td>{hours(stat.totalWorkHours)}</td>
+                      <td>{hours(stat.overtimeHours)}</td>
+                      <td>{days(stat.vacationDays)}</td>
+                      <td>{days(stat.sickDays)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       ) : null}

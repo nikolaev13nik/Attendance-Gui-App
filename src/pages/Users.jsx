@@ -166,81 +166,83 @@ export default function Users() {
         ) : users.length === 0 ? (
           <p className="spinner">{t("users.none")}</p>
         ) : (
-          <table className="table">
-            <thead>
-              <tr>
-                <th>{t("common.idNumber")}</th>
-                <th>{t("users.name")}</th>
-                <th>{t("common.email")}</th>
-                <th>{t("users.roles")}</th>
-                <th aria-label={t("common.actions")} />
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((user) => {
-                const self = user.idUser === profile.idUser;
-                const admin = isAdministrator(user);
-                return (
-                  <tr key={user.idUser}>
-                    <td>{user.idUser}</td>
-                    <td>
-                      {displayName(user)}
-                      {self ? <span className="tag tag--you" style={{ marginInlineStart: "0.4rem" }}>{t("users.you")}</span> : null}
-                    </td>
-                    <td>{user.email || "—"}</td>
-                    <td>
-                      {(user.roles || []).map((role) => (
-                        <span
-                          key={role}
-                          className={`tag${role.toUpperCase() === ADMINISTRATOR ? " tag--admin" : ""}`}
-                        >
-                          {roleLabel(role)}
-                        </span>
-                      ))}
-                    </td>
-                    <td>
-                      <div className="table__actions">
-                        <button
-                          type="button"
-                          className="btn btn--link"
-                          onClick={() => {
-                            setFailure(null);
-                            setEditing(user);
-                            setEditForm({
-                              firstName: user.firstName || "",
-                              lastName: user.lastName || "",
-                              email: user.email || "",
-                              password: "",
-                            });
-                          }}
-                        >
-                          {t("common.edit")}
-                        </button>
-                        <button
-                          type="button"
-                          className="btn btn--link"
-                          disabled={(admin && self) || busy !== null}
-                          title={admin && self ? t("users.cannotRevokeSelf") : undefined}
-                          onClick={() => setConfirmRole({ user, grant: !admin })}
-                        >
-                          {admin ? t("users.revokeAdmin") : t("users.grantAdmin")}
-                        </button>
-                        <button
-                          type="button"
-                          className="btn btn--link"
-                          disabled={self || busy !== null}
-                          title={self ? t("users.cannotDeleteSelf") : undefined}
-                          onClick={() => setConfirmDelete(user)}
-                        >
-                          {t("common.delete")}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          <div className="table-wrap">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>{t("common.idNumber")}</th>
+                  <th>{t("users.name")}</th>
+                  <th>{t("common.email")}</th>
+                  <th>{t("users.roles")}</th>
+                  <th aria-label={t("common.actions")} />
+                </tr>
+              </thead>
+              <tbody>
+                {users.map((user) => {
+                  const self = user.idUser === profile.idUser;
+                  const admin = isAdministrator(user);
+                  return (
+                    <tr key={user.idUser}>
+                      <td>{user.idUser}</td>
+                      <td>
+                        {displayName(user)}
+                        {self ? <span className="tag tag--you" style={{ marginInlineStart: "0.4rem" }}>{t("users.you")}</span> : null}
+                      </td>
+                      <td>{user.email || "—"}</td>
+                      <td>
+                        {(user.roles || []).map((role) => (
+                          <span
+                            key={role}
+                            className={`tag${role.toUpperCase() === ADMINISTRATOR ? " tag--admin" : ""}`}
+                          >
+                            {roleLabel(role)}
+                          </span>
+                        ))}
+                      </td>
+                      <td>
+                        <div className="table__actions">
+                          <button
+                            type="button"
+                            className="btn btn--link"
+                            onClick={() => {
+                              setFailure(null);
+                              setEditing(user);
+                              setEditForm({
+                                firstName: user.firstName || "",
+                                lastName: user.lastName || "",
+                                email: user.email || "",
+                                password: "",
+                              });
+                            }}
+                          >
+                            {t("common.edit")}
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn--link"
+                            disabled={(admin && self) || busy !== null}
+                            title={admin && self ? t("users.cannotRevokeSelf") : undefined}
+                            onClick={() => setConfirmRole({ user, grant: !admin })}
+                          >
+                            {admin ? t("users.revokeAdmin") : t("users.grantAdmin")}
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn--link"
+                            disabled={self || busy !== null}
+                            title={self ? t("users.cannotDeleteSelf") : undefined}
+                            onClick={() => setConfirmDelete(user)}
+                          >
+                            {t("common.delete")}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 

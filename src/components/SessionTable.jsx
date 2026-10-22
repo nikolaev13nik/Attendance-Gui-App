@@ -94,87 +94,89 @@ export default function SessionTable({
   }, []);
 
   return (
-    <table className="table">
-      <thead>
-        <tr>
-          <th>{t("table.type")}</th>
-          <th>
-            {onToggleSort ? (
-              <button type="button" className="btn btn--link" onClick={onToggleSort}>
-                {t("common.date")} {sortDesc ? "↓" : "↑"}
-              </button>
+    <div className="table-wrap">
+      <table className="table">
+        <thead>
+          <tr>
+            <th>{t("table.type")}</th>
+            <th>
+              {onToggleSort ? (
+                <button type="button" className="btn btn--link" onClick={onToggleSort}>
+                  {t("common.date")} {sortDesc ? "↓" : "↑"}
+                </button>
+              ) : (
+                t("common.date")
+              )}
+            </th>
+            <th>
+              {onToggleStartSort ? (
+                <button type="button" className="btn btn--link" onClick={onToggleStartSort}>
+                  {t("common.start")} {startDesc ? "\u2193" : "\u2191"}
+                </button>
+              ) : (
+                t("common.start")
+              )}
+            </th>
+            <th>{t("common.end")}</th>
+            <th>{t("table.totalHours")}</th>
+            <th>{t("table.overtime")}</th>
+            <th>{t("common.sickness")}</th>
+            <th>{t("common.vacation")}</th>
+            {actions ? <th aria-label={t("common.actions")} /> : null}
+          </tr>
+        </thead>
+        <tbody>
+          {entries.map((entry, index) =>
+            entry.kind === "leave" ? (
+              <tr key={`leave-${entry.row.id}`} className={shaded[index] ? "table__day--alt" : undefined}>
+                <td>{t("table.leaveDay")}</td>
+                <td className="table__nowrap">{entry.row.date}</td>
+                <td>&mdash;</td>
+                <td>&mdash;</td>
+                <td />
+                <td />
+                <td>{portion(entry.row.sickAmount)}</td>
+                <td>{portion(entry.row.vacationAmount)}</td>
+                {actions ? <td>{actions(entry)}</td> : null}
+              </tr>
             ) : (
-              t("common.date")
-            )}
-          </th>
-          <th>
-            {onToggleStartSort ? (
-              <button type="button" className="btn btn--link" onClick={onToggleStartSort}>
-                {t("common.start")} {startDesc ? "\u2193" : "\u2191"}
-              </button>
-            ) : (
-              t("common.start")
-            )}
-          </th>
-          <th>{t("common.end")}</th>
-          <th>{t("table.totalHours")}</th>
-          <th>{t("table.overtime")}</th>
-          <th>{t("common.sickness")}</th>
-          <th>{t("common.vacation")}</th>
-          {actions ? <th aria-label={t("common.actions")} /> : null}
-        </tr>
-      </thead>
-      <tbody>
-        {entries.map((entry, index) =>
-          entry.kind === "leave" ? (
-            <tr key={`leave-${entry.row.id}`} className={shaded[index] ? "table__day--alt" : undefined}>
-              <td>{t("table.leaveDay")}</td>
-              <td className="table__nowrap">{entry.row.date}</td>
-              <td>&mdash;</td>
-              <td>&mdash;</td>
-              <td />
-              <td />
-              <td>{portion(entry.row.sickAmount)}</td>
-              <td>{portion(entry.row.vacationAmount)}</td>
-              {actions ? <td>{actions(entry)}</td> : null}
-            </tr>
-          ) : (
-            <tr key={`session-${entry.row.id}`} className={shaded[index] ? "table__day--alt" : undefined}>
-              <td>
-                {t("table.workHours")}
-                {needsFixing.has(entry.row.id) ? (
-                  <>
-                    {" "}
-                    <span className="tag tag--admin">{t("table.needsFixing")}</span>
-                  </>
-                ) : null}
-              </td>
-              <td className="table__nowrap">{entry.row.workDate}</td>
-              <td className="table__nowrap">
-                {formatTime(entry.row.openSessionDate) || <span className="tag">{t("table.missing")}</span>}
-              </td>
-              <td className="table__nowrap">
-                {formatTime(entry.row.closeSessionDate) || <span className="tag">{t("table.missing")}</span>}
-              </td>
-              <td>{formatDuration(hours.get(entry.row.id)?.total)}</td>
-              <td>{formatDuration(hours.get(entry.row.id)?.overtime)}</td>
-              <td>&mdash;</td>
-              <td>&mdash;</td>
-              {actions ? <td>{actions(entry)}</td> : null}
-            </tr>
-          ),
-        )}
-      </tbody>
-      <tfoot>
-        <tr className="table__totals">
-          <td colSpan={4}>{t("table.sum")}</td>
-          <td>{formatDuration(totals.total)}</td>
-          <td>{formatDuration(totals.overtime)}</td>
-          <td>{portion(totals.sick)}</td>
-          <td>{portion(totals.vacation)}</td>
-          {actions ? <td /> : null}
-        </tr>
-      </tfoot>
-    </table>
+              <tr key={`session-${entry.row.id}`} className={shaded[index] ? "table__day--alt" : undefined}>
+                <td>
+                  {t("table.workHours")}
+                  {needsFixing.has(entry.row.id) ? (
+                    <>
+                      {" "}
+                      <span className="tag tag--admin">{t("table.needsFixing")}</span>
+                    </>
+                  ) : null}
+                </td>
+                <td className="table__nowrap">{entry.row.workDate}</td>
+                <td className="table__nowrap">
+                  {formatTime(entry.row.openSessionDate) || <span className="tag">{t("table.missing")}</span>}
+                </td>
+                <td className="table__nowrap">
+                  {formatTime(entry.row.closeSessionDate) || <span className="tag">{t("table.missing")}</span>}
+                </td>
+                <td>{formatDuration(hours.get(entry.row.id)?.total)}</td>
+                <td>{formatDuration(hours.get(entry.row.id)?.overtime)}</td>
+                <td>&mdash;</td>
+                <td>&mdash;</td>
+                {actions ? <td>{actions(entry)}</td> : null}
+              </tr>
+            ),
+          )}
+        </tbody>
+        <tfoot>
+          <tr className="table__totals">
+            <td colSpan={4}>{t("table.sum")}</td>
+            <td>{formatDuration(totals.total)}</td>
+            <td>{formatDuration(totals.overtime)}</td>
+            <td>{portion(totals.sick)}</td>
+            <td>{portion(totals.vacation)}</td>
+            {actions ? <td /> : null}
+          </tr>
+        </tfoot>
+      </table>
+    </div>
   );
 }

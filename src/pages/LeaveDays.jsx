@@ -169,70 +169,72 @@ export default function LeaveDays() {
             ))}
           </Field>
 
-          <table className="table" style={{ marginBottom: "0.75rem" }}>
-            <thead>
-              <tr>
-                <th>{t("common.date")}</th>
-                <th>{t("common.vacation")}</th>
-                <th>{t("common.sickness")}</th>
-                <th aria-label={t("common.actions")} />
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row, index) => (
-                <tr key={index}>
-                  <td>
-                    <input
-                      type="date"
-                      className={`field__input${errors[index] ? " field__input--invalid" : ""}`}
-                      value={row.date}
-                      onChange={updateRow(index, "date")}
-                      aria-label={t("leaveDays.rowDate", { row: index + 1 })}
-                    />
-                    {errors[index] ? <span className="field__error">{text(errors[index])}</span> : null}
-                  </td>
-                  <td>
-                    <select
-                      className="field__input"
-                      value={row.vacation}
-                      onChange={updateRow(index, "vacation")}
-                      aria-label={t("leaveDays.rowVacation", { row: index + 1 })}
-                    >
-                      {AMOUNTS.map((amount) => (
-                        <option key={amount.value} value={amount.value}>
-                          {t(amount.label)}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                  <td>
-                    <select
-                      className="field__input"
-                      value={row.sick}
-                      onChange={updateRow(index, "sick")}
-                      aria-label={t("leaveDays.rowSick", { row: index + 1 })}
-                    >
-                      {AMOUNTS.map((amount) => (
-                        <option key={amount.value} value={amount.value}>
-                          {t(amount.label)}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                  <td>
-                    <button
-                      type="button"
-                      className="btn btn--link"
-                      disabled={rows.length === 1}
-                      onClick={() => removeRow(index)}
-                    >
-                      {t("leaveDays.remove")}
-                    </button>
-                  </td>
+          <div className="table-wrap">
+            <table className="table" style={{ marginBottom: "0.75rem" }}>
+              <thead>
+                <tr>
+                  <th>{t("common.date")}</th>
+                  <th>{t("common.vacation")}</th>
+                  <th>{t("common.sickness")}</th>
+                  <th aria-label={t("common.actions")} />
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {rows.map((row, index) => (
+                  <tr key={index}>
+                    <td>
+                      <input
+                        type="date"
+                        className={`field__input${errors[index] ? " field__input--invalid" : ""}`}
+                        value={row.date}
+                        onChange={updateRow(index, "date")}
+                        aria-label={t("leaveDays.rowDate", { row: index + 1 })}
+                      />
+                      {errors[index] ? <span className="field__error">{text(errors[index])}</span> : null}
+                    </td>
+                    <td>
+                      <select
+                        className="field__input"
+                        value={row.vacation}
+                        onChange={updateRow(index, "vacation")}
+                        aria-label={t("leaveDays.rowVacation", { row: index + 1 })}
+                      >
+                        {AMOUNTS.map((amount) => (
+                          <option key={amount.value} value={amount.value}>
+                            {t(amount.label)}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td>
+                      <select
+                        className="field__input"
+                        value={row.sick}
+                        onChange={updateRow(index, "sick")}
+                        aria-label={t("leaveDays.rowSick", { row: index + 1 })}
+                      >
+                        {AMOUNTS.map((amount) => (
+                          <option key={amount.value} value={amount.value}>
+                            {t(amount.label)}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td>
+                      <button
+                        type="button"
+                        className="btn btn--link"
+                        disabled={rows.length === 1}
+                        onClick={() => removeRow(index)}
+                      >
+                        {t("leaveDays.remove")}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
           <div className="row row--split">
             <button type="button" className="btn" onClick={addRow}>

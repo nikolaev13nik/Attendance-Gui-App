@@ -49,10 +49,18 @@
 body {
   margin: 0;
   min-height: 100vh;
+  min-height: 100dvh;
   color: var(--text);
   font-family: "Noto Serif", "Noto Serif Hebrew", Georgia, serif;
+  background: #e3e5e9;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
   background: radial-gradient(ellipse at 32% 38%, #ffffff 0%, #f6f7f9 42%, #e3e5e9 72%, #d2d5db 100%);
-  background-attachment: fixed;
 }
 
 h1,
@@ -68,6 +76,7 @@ a {
 
 .app {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
 }
@@ -306,6 +315,11 @@ a {
   color: var(--text-muted);
 }
 
+.table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .table {
   width: 100%;
   border-collapse: collapse;
@@ -431,6 +445,19 @@ a {
 @media (max-width: 560px) {
   .grid-2 {
     grid-template-columns: 1fr;
+  }
+
+  .main {
+    padding: 1rem 0.6rem 2rem;
+  }
+
+  .card {
+    padding: 1rem;
+  }
+
+  .table th,
+  .table td {
+    padding: 0.45rem 0.35rem;
   }
 
   .header__org {
