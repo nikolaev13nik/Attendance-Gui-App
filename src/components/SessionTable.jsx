@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { DEFAULT_CONFIG, loadConfig } from "../api/config.js";
-import { dailyHours, formatDuration } from "../api/hours.js";
+import { dailyHours, formatDuration, tableTotals } from "../api/hours.js";
 import { formatTime } from "../api/time.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
 
@@ -47,7 +47,8 @@ function portion(amount) {
   if (amount === null || amount === undefined) {
     return "—";
   }
-  return amount === 0.5 ? "½" : String(amount);
+  const whole = Math.floor(amount);
+  return amount - whole === 0.5 ? `${whole || ""}½` : String(amount);
 }
 
 export default function SessionTable({
@@ -65,6 +66,7 @@ export default function SessionTable({
   const needsFixing = incompleteIds || new Set();
   const [config, setConfig] = useState(DEFAULT_CONFIG);
   const hours = dailyHours(sessions, config.overtimeDailyThresholdMinutes);
+  const totals = tableTotals(sessions, leave, hours);
 
   useEffect(() => {
     let active = true;
@@ -114,7 +116,7 @@ export default function SessionTable({
           entry.kind === "leave" ? (
             <tr key={`leave-${entry.row.id}`}>
               <td>{t("table.leaveDay")}</td>
-              <td>{entry.row.date}</td>
+              <td className="table__nowrap">{entry.row.date}</td>
               <td>&mdash;</td>
               <td>&mdash;</td>
               <td />
@@ -134,9 +136,13 @@ export default function SessionTable({
                   </>
                 ) : null}
               </td>
-              <td>{entry.row.workDate}</td>
-              <td>{formatTime(entry.row.openSessionDate) || <span className="tag">{t("table.missing")}</span>}</td>
-              <td>{formatTime(entry.row.closeSessionDate) || <span className="tag">{t("table.missing")}</span>}</td>
+              <td className="table__nowrap">{entry.row.workDate}</td>
+              <td className="table__nowrap">
+                {formatTime(entry.row.openSessionDate) || <span className="tag">{t("table.missing")}</span>}
+              </td>
+              <td className="table__nowrap">
+                {formatTime(entry.row.closeSessionDate) || <span className="tag">{t("table.missing")}</span>}
+              </td>
               <td>{formatDuration(hours.get(entry.row.id)?.total)}</td>
               <td>{formatDuration(hours.get(entry.row.id)?.overtime)}</td>
               <td>&mdash;</td>
@@ -146,6 +152,16 @@ export default function SessionTable({
           ),
         )}
       </tbody>
+      <tfoot>
+        <tr className="table__totals">
+          <td colSpan={4}>{t("table.sum")}</td>
+          <td>{formatDuration(totals.total)}</td>
+          <td>{formatDuration(totals.overtime)}</td>
+          <td>{portion(totals.sick)}</td>
+          <td>{portion(totals.vacation)}</td>
+          {actions ? <td /> : null}
+        </tr>
+      </tfoot>
     </table>
   );
 }

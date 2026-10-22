@@ -53,6 +53,17 @@ export function dailyHours(sessions, limit) {
   return result;
 }
 
+export function tableTotals(sessions, leave, hours) {
+  const sum = (values) => values.reduce((total, value) => total + (value ?? 0), 0);
+  const sessionHours = (sessions || []).map((row) => hours.get(row.id) || {});
+  return {
+    total: sum(sessionHours.map(({ total }) => total)),
+    overtime: sum(sessionHours.map(({ overtime }) => overtime)),
+    sick: sum((leave || []).map((day) => day.sickAmount)),
+    vacation: sum((leave || []).map((day) => day.vacationAmount)),
+  };
+}
+
 export function formatDuration(minutes) {
   if (minutes === null || minutes === undefined) {
     return "";

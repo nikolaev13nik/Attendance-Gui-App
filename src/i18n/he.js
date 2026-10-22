@@ -152,6 +152,7 @@ export default {
   "session.nothingForYou": "לא נרשם עבורך דבר בטווח זה.",
 
   "table.overtime": "שעות נוספות",
+  "table.sum": "סה״כ",
   "table.totalHours": "סה״כ שעות",
   "table.type": "סוג",
   "table.leaveDay": "יום היעדרות",

@@ -53,7 +53,12 @@ export function formatTime(isoString) {
   if (Number.isNaN(parsed.getTime())) {
     return null;
   }
-  return parsed.toLocaleTimeString(currentLocale(), { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  return parsed.toLocaleTimeString(currentLocale(), {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+  });
 }
 
 export function formatLongDate(date = new Date()) {

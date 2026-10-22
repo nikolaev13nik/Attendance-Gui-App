@@ -163,6 +163,7 @@ export default {
   "session.nothingForYou": "За этот период для вас ничего не записано.",
 
   "table.overtime": "Переработка",
+  "table.sum": "Итого",
   "table.totalHours": "Всего часов",
   "table.type": "Тип",
   "table.leaveDay": "День отсутствия",

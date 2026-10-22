@@ -163,6 +163,7 @@ export default {
   "session.nothingForYou": "Nothing recorded for you in that range.",
 
   "table.overtime": "Overtime",
+  "table.sum": "Total",
   "table.totalHours": "Total hours",
   "table.type": "Type",
   "table.leaveDay": "Leave day",

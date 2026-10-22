@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clockMinutes, dailyHours, formatDuration, sessionMinutes } from "./hours.js";
+import { clockMinutes, dailyHours, formatDuration, sessionMinutes, tableTotals } from "./hours.js";
 
 function session(id, workDate, open, close) {
   return {
@@ -86,6 +86,26 @@ describe("clockMinutes", () => {
     expect(clockMinutes("8.405")).toBeNull();
     expect(clockMinutes("abc")).toBeNull();
     expect(clockMinutes(undefined)).toBeNull();
+  });
+});
+
+describe("tableTotals", () => {
+  it("sums hours, overtime and leave over every row shown", () => {
+    const sessions = [
+      session(1, "2024-01-02", "08:00", "12:00"),
+      session(2, "2024-01-02", "13:00", "18:30"),
+      session(3, "2024-01-03", "09:00", null),
+    ];
+    const leave = [
+      { id: 10, date: "2024-01-04", sickAmount: 1, vacationAmount: null },
+      { id: 11, date: "2024-01-05", sickAmount: 0.5, vacationAmount: 0.5 },
+    ];
+    const totals = tableTotals(sessions, leave, dailyHours(sessions, 480));
+    expect(totals).toEqual({ total: 570, overtime: 90, sick: 1.5, vacation: 0.5 });
+  });
+
+  it("is all zeros for an empty table", () => {
+    expect(tableTotals([], [], new Map())).toEqual({ total: 0, overtime: 0, sick: 0, vacation: 0 });
   });
 });
 

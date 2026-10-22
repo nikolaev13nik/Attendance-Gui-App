@@ -330,6 +330,16 @@ a {
   border-bottom: none;
 }
 
+.table__nowrap {
+  white-space: nowrap;
+}
+
+.table__totals td {
+  font-weight: 700;
+  border-top: 2px solid var(--border);
+  border-bottom: none;
+}
+
 .table__actions {
   display: flex;
   gap: 0.35rem;
