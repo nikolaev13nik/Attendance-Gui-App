@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gui-config
+  namespace: {{ .Values.namespace }}
+data:
+  config.json: |
+    {
+      "overtimeDailyThreshold": {{ .Values.overtimeDailyThreshold | toString | quote }}
+    }

@@ -19,7 +19,13 @@ spec:
     metadata:
       labels:
         app: gui
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
     spec:
+      volumes:
+        - name: config
+          configMap:
+            name: gui-config
       containers:
         - name: gui
 
@@ -28,6 +34,12 @@ spec:
 
           ports:
             - containerPort: {{ .Values.service.targetPort }}
+
+          volumeMounts:
+            - name: config
+              mountPath: /usr/share/nginx/html/config.json
+              subPath: config.json
+              readOnly: true
 
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
