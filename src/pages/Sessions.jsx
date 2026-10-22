@@ -361,7 +361,7 @@ export default function Sessions() {
 
         <div className="row" style={{ alignItems: "flex-end", marginBottom: "1rem" }}>
           {admin ? (
-            <div className="field" style={{ marginBottom: 0, minWidth: "14rem" }}>
+            <div className="field" style={{ minWidth: "14rem" }}>
               <label className="field__label" htmlFor="filter-user">
                 {t("common.employee")}
               </label>

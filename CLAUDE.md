@@ -38,12 +38,14 @@ npm ci                      # install exactly what package-lock.json pins
 npm run dev                 # vite dev server on port 3000, strictPort - fails rather than moving
 npm run build               # production bundle into dist/ (gitignored)
 npm run preview             # serve the built bundle locally
+npm test                    # vitest, run once
 
 docker build -t gui:local . # the real image
 docker run --rm -p 8080:8080 gui:local
 ```
 
-There is **no test script and no linter** — `npm run build` is the only gate.
+`npm test` (vitest) and `npm run build` are the CI gates; there is no linter. Tests sit next to the
+module as `*.test.js` and cover pure logic only — there is no DOM environment configured.
 
 `npm run dev` proxies the two API prefixes; the targets come from env vars read by `vite.config.js`
 (`.env.development` is gitignored, `.env.example` is the template):
@@ -93,10 +95,19 @@ Two things in `default.conf` are load-bearing and non-obvious:
 
 `/healthz` is the probe path, standing in for the Java services' `/actuator/health`.
 
+`/config.json` is the one piece of runtime config, read once by `src/api/config.js` and served
+`no-store`. The image ships `public/config.json` with the defaults, which is what Compose and `npm run dev`
+see; in Kubernetes the `gui-config` ConfigMap is mounted over it with `subPath`. Its only key is
+`overtimeDailyThreshold`, a string in `H.MM` clock time — `"8.40"` is 8h40m, and a single minute digit
+is right-padded so an unquoted YAML `8.40` (a float, `8.4`) means the same — parsed by `clockMinutes` in
+`src/api/hours.js`. It must match TimeTracking's `overtimeDailyThreshold`, since that service computes the overtime in the monthly statistics while
+this app computes the per-row columns.
+
 ## Deployment
 
-`helm/gui/` is four files — no `configmap.yaml`, because there is nothing to configure at runtime. It
-is the only chart in the system with no `secretKeyRef`, so it installs onto a bare namespace.
+`helm/gui/` holds a `configmap.yaml` for `config.json` (see above); a `checksum/config` pod annotation
+rolls the pod when it changes, since a `subPath` mount never sees ConfigMap updates. It is the only chart
+in the system with no `secretKeyRef`, so it installs onto a bare namespace.
 
 Argo CD owns this workload (`../attendance-project-common/argocd/gui-application.yaml`) with
 `selfHeal: true`, so a `kubectl edit` is reverted within seconds and a commit is the only way in. To
@@ -113,8 +124,7 @@ change and a `helm/` change in one commit.
 
 ## Known gaps (don't assume these exist)
 
-- No tests, no linter, no TypeScript. If you add any, wire them into the `npm run build` slot in
-  `.github/workflows/ci.yml` — that is where the Java repos' `mvn verify -Pci` gate lives.
+- No linter, no TypeScript, no component tests.
 - No error boundary: a render-time throw blanks the page rather than showing a fallback.
 - No generated API client, so no compile-time check against the backend specs.
 - `http.js`'s unreachable message names `docker compose ps`, which is wrong advice when the app is

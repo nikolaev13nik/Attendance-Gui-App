@@ -151,6 +151,8 @@ export default {
   "session.readOnly": "רשימה זו לקריאה בלבד. כדי לשנות או למחוק רישום, מנהל צריך להשתמש במסך סקירת המשמרות.",
   "session.nothingForYou": "לא נרשם עבורך דבר בטווח זה.",
 
+  "table.overtime": "שעות נוספות",
+  "table.totalHours": "סה״כ שעות",
   "table.type": "סוג",
   "table.leaveDay": "יום היעדרות",
   "table.workHours": "שעות עבודה",

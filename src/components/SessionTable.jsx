@@ -1,3 +1,6 @@
+import { useEffect, useState } from "react";
+import { DEFAULT_CONFIG, loadConfig } from "../api/config.js";
+import { dailyHours, formatDuration } from "../api/hours.js";
 import { formatTime } from "../api/time.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
 
@@ -60,6 +63,20 @@ export default function SessionTable({
   const { t } = useI18n();
   const entries = leaveEntries(sessions, leave, sortDesc, startDesc);
   const needsFixing = incompleteIds || new Set();
+  const [config, setConfig] = useState(DEFAULT_CONFIG);
+  const hours = dailyHours(sessions, config.overtimeDailyThresholdMinutes);
+
+  useEffect(() => {
+    let active = true;
+    loadConfig().then((loaded) => {
+      if (active) {
+        setConfig(loaded);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return (
     <table className="table">
@@ -85,6 +102,8 @@ export default function SessionTable({
             )}
           </th>
           <th>{t("common.end")}</th>
+          <th>{t("table.totalHours")}</th>
+          <th>{t("table.overtime")}</th>
           <th>{t("common.sickness")}</th>
           <th>{t("common.vacation")}</th>
           {actions ? <th aria-label={t("common.actions")} /> : null}
@@ -98,6 +117,8 @@ export default function SessionTable({
               <td>{entry.row.date}</td>
               <td>&mdash;</td>
               <td>&mdash;</td>
+              <td />
+              <td />
               <td>{portion(entry.row.sickAmount)}</td>
               <td>{portion(entry.row.vacationAmount)}</td>
               {actions ? <td>{actions(entry)}</td> : null}
@@ -116,6 +137,8 @@ export default function SessionTable({
               <td>{entry.row.workDate}</td>
               <td>{formatTime(entry.row.openSessionDate) || <span className="tag">{t("table.missing")}</span>}</td>
               <td>{formatTime(entry.row.closeSessionDate) || <span className="tag">{t("table.missing")}</span>}</td>
+              <td>{formatDuration(hours.get(entry.row.id)?.total)}</td>
+              <td>{formatDuration(hours.get(entry.row.id)?.overtime)}</td>
               <td>&mdash;</td>
               <td>&mdash;</td>
               {actions ? <td>{actions(entry)}</td> : null}

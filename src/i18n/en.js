@@ -162,6 +162,8 @@ export default {
     "This list is read-only. To change or delete a record, an administrator has to use the Review sessions control panel.",
   "session.nothingForYou": "Nothing recorded for you in that range.",
 
+  "table.overtime": "Overtime",
+  "table.totalHours": "Total hours",
   "table.type": "Type",
   "table.leaveDay": "Leave day",
   "table.workHours": "Work hours",
