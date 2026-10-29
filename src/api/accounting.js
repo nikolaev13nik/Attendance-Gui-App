@@ -30,38 +30,42 @@ export function login({ idUser, password, tenantId, companyName }) {
   });
 }
 
-export function listUsers({ tenantId, token }) {
-  return request(`/account/users?tenantId=${encodeURIComponent(tenantId)}`, { token });
+function tenantPath(tenantId) {
+  return `/account/tenant/${encodeURIComponent(tenantId)}`;
 }
 
-export function editUser({ idUser, token, firstName, lastName, email, password }) {
-  return request(`/account/user/password/${encodeURIComponent(idUser)}`, {
+export function listUsers({ tenantId, token }) {
+  return request(`${tenantPath(tenantId)}/users`, { token });
+}
+
+export function editUser({ tenantId, idUser, token, firstName, lastName, email, password }) {
+  return request(`${tenantPath(tenantId)}/user/password/${encodeURIComponent(idUser)}`, {
     method: "PUT",
     token,
     body: { firstName, lastName, email, password },
     messages: {
       403: "api.editForbidden",
-      500: "api.userNotFound",
+      404: "api.userNotFound",
     },
   });
 }
 
-export function deleteUser({ idUser, token }) {
-  return request(`/account/user/${encodeURIComponent(idUser)}`, {
+export function deleteUser({ tenantId, idUser, token }) {
+  return request(`${tenantPath(tenantId)}/user/${encodeURIComponent(idUser)}`, {
     method: "DELETE",
     token,
   });
 }
 
-export function addRole({ idUser, role, token }) {
-  return request(`/account/user/${encodeURIComponent(idUser)}/role/${encodeURIComponent(role)}`, {
+export function addRole({ tenantId, idUser, role, token }) {
+  return request(`${tenantPath(tenantId)}/user/${encodeURIComponent(idUser)}/role/${encodeURIComponent(role)}`, {
     method: "POST",
     token,
   });
 }
 
-export function removeRole({ idUser, role, token }) {
-  return request(`/account/user/${encodeURIComponent(idUser)}/role/${encodeURIComponent(role)}`, {
+export function removeRole({ tenantId, idUser, role, token }) {
+  return request(`${tenantPath(tenantId)}/user/${encodeURIComponent(idUser)}/role/${encodeURIComponent(role)}`, {
     method: "DELETE",
     token,
   });

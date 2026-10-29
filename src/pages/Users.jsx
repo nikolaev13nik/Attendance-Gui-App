@@ -108,6 +108,7 @@ export default function Users() {
       "edit",
       () =>
         editUser({
+          tenantId,
           idUser: target.idUser,
           token,
           firstName: editForm.firstName.trim() || undefined,
@@ -355,8 +356,8 @@ export default function Users() {
                     "role",
                     () =>
                       grant
-                        ? addRole({ idUser: user.idUser, role: ADMINISTRATOR, token })
-                        : removeRole({ idUser: user.idUser, role: ADMINISTRATOR, token }),
+                        ? addRole({ tenantId, idUser: user.idUser, role: ADMINISTRATOR, token })
+                        : removeRole({ tenantId, idUser: user.idUser, role: ADMINISTRATOR, token }),
                     grant
                       ? msg("users.granted", { id: user.idUser })
                       : msg("users.revoked", { id: user.idUser }),
@@ -394,7 +395,7 @@ export default function Users() {
                   setConfirmDelete(null);
                   await act(
                     "delete",
-                    () => deleteUser({ idUser: target.idUser, token }),
+                    () => deleteUser({ tenantId, idUser: target.idUser, token }),
                     msg("users.deleted", { id: target.idUser }),
                   );
                 }}
