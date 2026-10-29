@@ -36,8 +36,8 @@ export default {
   "validation.wholeNumber": "Введите целое число от 1 и больше.",
 
   "role.USER": "Пользователь",
-  "role.MODERATOR": "Модератор",
   "role.ADMINISTRATOR": "Администратор",
+  "role.PLATFORM_ADMIN": "Администратор платформы",
 
   "leave.none": "нет",
   "leave.half": "полдня",

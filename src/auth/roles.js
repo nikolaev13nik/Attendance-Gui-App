@@ -1,4 +1,5 @@
 export const ADMINISTRATOR = "ADMINISTRATOR";
+export const PLATFORM_ADMIN = "PLATFORM_ADMIN";
 
 export function hasRole(profile, role) {
   if (!profile || !Array.isArray(profile.roles)) {
@@ -9,7 +10,7 @@ export function hasRole(profile, role) {
 }
 
 export function isAdministrator(profile) {
-  return hasRole(profile, ADMINISTRATOR);
+  return hasRole(profile, ADMINISTRATOR) || hasRole(profile, PLATFORM_ADMIN);
 }
 
 export function displayName(profile) {

@@ -36,8 +36,8 @@ export default {
   "validation.wholeNumber": "יש להזין מספר שלם, 1 ומעלה.",
 
   "role.USER": "משתמש",
-  "role.MODERATOR": "מנחה",
   "role.ADMINISTRATOR": "מנהל מערכת",
+  "role.PLATFORM_ADMIN": "מנהל פלטפורמה",
 
   "leave.none": "ללא",
   "leave.half": "חצי יום",

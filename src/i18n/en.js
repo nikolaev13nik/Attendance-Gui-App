@@ -36,8 +36,8 @@ export default {
   "validation.wholeNumber": "Enter a whole number of 1 or more.",
 
   "role.USER": "User",
-  "role.MODERATOR": "Moderator",
   "role.ADMINISTRATOR": "Administrator",
+  "role.PLATFORM_ADMIN": "Platform admin",
 
   "leave.none": "none",
   "leave.half": "half day",
