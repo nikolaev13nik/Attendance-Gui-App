@@ -1,35 +1,48 @@
 import { useState } from "react";
-import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Layout from "../components/Layout.jsx";
 import Notice from "../components/Notice.jsx";
 import Field from "../components/Field.jsx";
-import { registerUser } from "../api/accounting.js";
-import { isAdministrator } from "../auth/roles.js";
+import { signUp } from "../api/accounting.js";
 import { msg, useI18n } from "../i18n/I18nContext.jsx";
 
-export default function SignUpAdmin() {
+const EMPTY_FORM = {
+  companyName: "",
+  phone: "",
+  idUser: "",
+  firstName: "",
+  lastName: "",
+  email: "",
+  password: "",
+};
+
+export default function SignUp() {
   const navigate = useNavigate();
   const { t, roleLabel } = useI18n();
-  const { state } = useLocation();
-  const tenantId = state?.tenantId;
-  const companyName = state?.companyName;
-
-  const [form, setForm] = useState({ idUser: "", firstName: "", lastName: "", email: "", password: "" });
+  const [form, setForm] = useState(EMPTY_FORM);
   const [errors, setErrors] = useState({});
   const [failure, setFailure] = useState(null);
   const [created, setCreated] = useState(null);
   const [busy, setBusy] = useState(false);
 
-  if (!tenantId) {
-    return <Navigate to="/signup/organization" replace />;
-  }
-
   const update = (key) => (event) => setForm((prev) => ({ ...prev, [key]: event.target.value }));
 
   function validate() {
     const next = {};
+    if (!form.companyName.trim()) {
+      next.companyName = msg("signup.error.companyName");
+    }
+    if (!form.phone.trim()) {
+      next.phone = msg("signup.error.phone");
+    }
     if (!/^\d+$/.test(form.idUser) || Number(form.idUser) < 1) {
       next.idUser = msg("validation.wholeNumber");
+    }
+    if (!form.firstName.trim()) {
+      next.firstName = msg("signup.error.firstName");
+    }
+    if (!form.lastName.trim()) {
+      next.lastName = msg("signup.error.lastName");
     }
     if (!/^\S+@\S+\.\S+$/.test(form.email)) {
       next.email = msg("validation.email");
@@ -49,15 +62,16 @@ export default function SignUpAdmin() {
     }
     setBusy(true);
     try {
-      const profile = await registerUser({
+      const result = await signUp({
+        companyName: form.companyName.trim(),
+        phone: form.phone.trim(),
         idUser: Number(form.idUser),
         password: form.password,
+        firstName: form.firstName.trim(),
+        lastName: form.lastName.trim(),
         email: form.email.trim(),
-        tenantId,
-        firstName: form.firstName.trim() || undefined,
-        lastName: form.lastName.trim() || undefined,
       });
-      setCreated(profile);
+      setCreated(result);
     } catch (error) {
       setFailure(error);
     } finally {
@@ -66,27 +80,25 @@ export default function SignUpAdmin() {
   }
 
   if (created) {
-    const admin = isAdministrator(created);
+    const { tenant, admin } = created;
     return (
-      <Layout orgName={companyName}>
+      <Layout orgName={tenant.companyName}>
         <div className="card card--narrow">
-          <h1 className="card__title">{t("signupAdmin.readyTitle")}</h1>
-          <Notice kind={admin ? "success" : "error"}>
-            {admin
-              ? t("signupAdmin.ready", { company: companyName, id: created.idUser })
-              : t("signupAdmin.notAdmin", { id: created.idUser })}
+          <h1 className="card__title">{t("signup.readyTitle")}</h1>
+          <Notice kind="success">
+            {t("signup.ready", { company: tenant.companyName, id: admin.idUser })}
           </Notice>
           <div className="clock__state">
             <dl>
-              <dt>{t("signupAdmin.organization")}</dt>
+              <dt>{t("signup.organization")}</dt>
               <dd>
-                {t("signupAdmin.organizationValue", { company: companyName, id: tenantId })}
+                {t("signup.organizationValue", { company: tenant.companyName, id: tenant.tenantId })}
               </dd>
               <dt>{t("common.idNumber")}</dt>
-              <dd>{created.idUser}</dd>
-              <dt>{t("signupAdmin.roles")}</dt>
+              <dd>{admin.idUser}</dd>
+              <dt>{t("signup.roles")}</dt>
               <dd>
-                {(created.roles || []).map((role) => (
+                {(admin.roles || []).map((role) => (
                   <span
                     key={role}
                     className={`tag${role.toUpperCase() === "ADMINISTRATOR" ? " tag--admin" : ""}`}
@@ -97,15 +109,15 @@ export default function SignUpAdmin() {
               </dd>
             </dl>
           </div>
-          <p className="card__hint">
-            {t("signupAdmin.signInHint")}
-          </p>
+          <p className="card__hint">{t("signup.signInHint")}</p>
           <button
             type="button"
             className="btn btn--primary btn--block"
-            onClick={() => navigate("/login", { state: { companyName, idUser: created.idUser } })}
+            onClick={() =>
+              navigate("/login", { state: { companyName: tenant.companyName, idUser: admin.idUser } })
+            }
           >
-            {t("signupAdmin.continue")}
+            {t("signup.continue")}
           </button>
         </div>
       </Layout>
@@ -113,14 +125,30 @@ export default function SignUpAdmin() {
   }
 
   return (
-    <Layout orgName={companyName}>
+    <Layout orgName={form.companyName.trim() || undefined}>
       <div className="card card--narrow">
-        <h1 className="card__title">{t("signupAdmin.title")}</h1>
-        <p className="card__hint">
-          {t("signupAdmin.hint", { company: companyName })}
-        </p>
+        <h1 className="card__title">{t("signup.title")}</h1>
+        <p className="card__hint">{t("signup.hint")}</p>
         <Notice kind="error">{failure}</Notice>
         <form onSubmit={submit} noValidate>
+          <h2 style={{ fontSize: "1.05rem" }}>{t("signup.sectionOrganization")}</h2>
+          <Field
+            label={t("login.companyName")}
+            value={form.companyName}
+            onChange={update("companyName")}
+            error={errors.companyName}
+            autoComplete="organization"
+            autoFocus
+          />
+          <Field
+            label={t("signup.phone")}
+            type="tel"
+            value={form.phone}
+            onChange={update("phone")}
+            error={errors.phone}
+            autoComplete="tel"
+          />
+          <h2 style={{ fontSize: "1.05rem" }}>{t("signup.sectionAdmin")}</h2>
           <Field
             label={t("common.idNumber")}
             type="number"
@@ -130,11 +158,22 @@ export default function SignUpAdmin() {
             onChange={update("idUser")}
             error={errors.idUser}
             hint={t("common.idNumberHint")}
-            autoFocus
           />
           <div className="grid-2">
-            <Field label={t("common.firstName")} value={form.firstName} onChange={update("firstName")} autoComplete="given-name" />
-            <Field label={t("common.lastName")} value={form.lastName} onChange={update("lastName")} autoComplete="family-name" />
+            <Field
+              label={t("common.firstName")}
+              value={form.firstName}
+              onChange={update("firstName")}
+              error={errors.firstName}
+              autoComplete="given-name"
+            />
+            <Field
+              label={t("common.lastName")}
+              value={form.lastName}
+              onChange={update("lastName")}
+              error={errors.lastName}
+              autoComplete="family-name"
+            />
           </div>
           <Field
             label={t("common.email")}
@@ -153,11 +192,11 @@ export default function SignUpAdmin() {
             autoComplete="new-password"
           />
           <button type="submit" className="btn btn--primary btn--block" disabled={busy}>
-            {busy ? t("common.creating") : t("signupAdmin.submit")}
+            {busy ? t("common.creating") : t("signup.submit")}
           </button>
         </form>
         <p className="card__hint" style={{ marginTop: "1rem", marginBottom: 0 }}>
-          <Link to="/signup/organization">{t("signupAdmin.back")}</Link>
+          {t("signup.haveOrg")} <Link to="/login">{t("login.submit")}</Link>.
         </p>
       </div>
     </Layout>

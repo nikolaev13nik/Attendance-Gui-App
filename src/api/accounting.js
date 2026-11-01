@@ -1,17 +1,23 @@
-import { request } from "./http.js";
+import { msg } from "../i18n/translate.js";
+import { ApiError, request } from "./http.js";
 
 function tenantPath(tenantId) {
   return `/account/tenant/${encodeURIComponent(tenantId)}`;
 }
 
-export function addTenant({ companyName, contactName, phone, email }) {
-  return request("/account/tenant/add", {
-    method: "POST",
-    body: { companyName, contactName, phone, email },
-    messages: {
-      409: "api.tenantExists",
-    },
-  });
+export async function signUp({ companyName, phone, idUser, password, firstName, lastName, email }) {
+  try {
+    return await request("/account/signup", {
+      method: "POST",
+      body: { companyName, phone, idUser, password, firstName, lastName, email },
+    });
+  } catch (error) {
+    if (error.status === 409) {
+      const key = error.serverMessage === "tenant exists" ? "api.tenantExists" : "api.userExists";
+      throw new ApiError(409, msg(key), error.serverMessage, error.body);
+    }
+    throw error;
+  }
 }
 
 export function registerUser({ tenantId, token, idUser, password, email, firstName, lastName }) {

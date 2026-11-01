@@ -146,7 +146,7 @@ export default function Login() {
           </button>
         </form>
         <p className="card__hint" style={{ marginTop: "1rem", marginBottom: 0 }}>
-          {t("login.newHere")} <Link to="/signup/organization">{t("login.setUpOrganization")}</Link>.
+          {t("login.newHere")} <Link to="/signup">{t("login.setUpOrganization")}</Link>.
         </p>
       </div>
     </Layout>

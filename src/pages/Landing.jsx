@@ -24,7 +24,7 @@ export default function Landing() {
           <button
             type="button"
             className="btn btn--block btn--large"
-            onClick={() => navigate("/signup/organization")}
+            onClick={() => navigate("/signup")}
           >
             {t("landing.signUp")}
           </button>

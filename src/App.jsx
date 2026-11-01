@@ -1,8 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import RequireAuth from "./auth/RequireAuth.jsx";
 import Landing from "./pages/Landing.jsx";
-import SignUpOrg from "./pages/SignUpOrg.jsx";
-import SignUpAdmin from "./pages/SignUpAdmin.jsx";
+import SignUp from "./pages/SignUp.jsx";
 import Login from "./pages/Login.jsx";
 import Home from "./pages/Home.jsx";
 import Users from "./pages/Users.jsx";
@@ -15,8 +14,8 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Landing />} />
-      <Route path="/signup/organization" element={<SignUpOrg />} />
-      <Route path="/signup/administrator" element={<SignUpAdmin />} />
+      <Route path="/signup" element={<SignUp />} />
+      <Route path="/signup/*" element={<Navigate to="/signup" replace />} />
       <Route path="/login" element={<Login />} />
       <Route
         path="/home"
