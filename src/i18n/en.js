@@ -54,6 +54,8 @@ export default {
   "api.unexpected": "The server returned an unexpected status {status}.",
   "api.tenantExists": "An organization with that name is already registered. Sign in instead, or pick another name.",
   "api.userExists": "A user with that ID already exists.",
+  "api.registerClosed": "This company already has users. Ask its administrator to add you.",
+  "api.registerForbidden": "Only this company's administrator can add users.",
   "api.loginFailed": "Those details did not match. Check the organization, user ID and password.",
   "api.editForbidden": "You can only edit your own profile unless you are an administrator.",
   "api.userNotFound": "That user could not be found.",

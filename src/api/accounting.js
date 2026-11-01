@@ -1,5 +1,9 @@
 import { request } from "./http.js";
 
+function tenantPath(tenantId) {
+  return `/account/tenant/${encodeURIComponent(tenantId)}`;
+}
+
 export function addTenant({ companyName, contactName, phone, email }) {
   return request("/account/tenant/add", {
     method: "POST",
@@ -10,11 +14,14 @@ export function addTenant({ companyName, contactName, phone, email }) {
   });
 }
 
-export function registerUser({ idUser, password, email, tenantId, firstName, lastName }) {
-  return request("/account/user", {
+export function registerUser({ tenantId, token, idUser, password, email, firstName, lastName }) {
+  return request(`${tenantPath(tenantId)}/user`, {
     method: "POST",
-    body: { idUser, password, email, tenantId, firstName, lastName },
+    token,
+    body: { idUser, password, email, firstName, lastName },
     messages: {
+      401: "api.registerClosed",
+      403: "api.registerForbidden",
       409: "api.userExists",
     },
   });
@@ -30,9 +37,6 @@ export function login({ idUser, password, tenantId, companyName }) {
   });
 }
 
-function tenantPath(tenantId) {
-  return `/account/tenant/${encodeURIComponent(tenantId)}`;
-}
 
 export function listUsers({ tenantId, token }) {
   return request(`${tenantPath(tenantId)}/users`, { token });

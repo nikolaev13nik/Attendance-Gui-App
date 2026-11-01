@@ -85,10 +85,11 @@ export default function Users() {
       "create",
       () =>
         registerUser({
+          tenantId,
+          token,
           idUser: Number(createForm.idUser),
           password: createForm.password,
           email: createForm.email.trim(),
-          tenantId,
           firstName: createForm.firstName.trim() || undefined,
           lastName: createForm.lastName.trim() || undefined,
         }),
