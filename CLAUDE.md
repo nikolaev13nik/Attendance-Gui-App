@@ -64,6 +64,15 @@ owns the token and the signed-in user; `RequireAuth.jsx` wraps the protected rou
 holds the role checks. `src/api/` is the only place that talks HTTP — `http.js` is the shared
 `request()` wrapper, `accounting.js` and `timetracking.js` are the per-service call sites.
 
+**Which company a page works on.** Pages take `tenantId` from `useAuth()`, never from `profile.tenantId`.
+For employees and company administrators it is their own tenant. The platform admin (`PLATFORM_ADMIN` in
+tenant 0, `isPlatformAdmin`) has no company of their own: `/companies` lists them (`GET /account/tenants`,
+20 per page) and "Manage" stores the choice as `actingTenant` in `sessionStorage` (cleared on sign-in and
+sign-out). `RequireAuth` sends a platform admin with no company chosen to `/companies`, and keeps them off
+`/session` (`ownHoursOnly`), which records the signed-in person's own hours. While acting, `Layout` shows a
+banner with "Change company", and the menu is the company administrator's minus "Report session".
+`selectableUserId` moves a user picker off an id that is not in the company (the platform admin's own).
+
 `http.js` maps failures to user-facing text rather than letting raw statuses surface, and it treats
 502/503/504 and a bodiless 500 as "backend unreachable" via `looksUnreachable`. Keep new calls going
 through `request()` so they inherit that handling instead of calling `fetch` directly.

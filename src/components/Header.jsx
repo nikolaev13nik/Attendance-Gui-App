@@ -1,15 +1,17 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
-import { displayName, isAdministrator } from "../auth/roles.js";
+import { displayName, isAdministrator, isPlatformAdmin } from "../auth/roles.js";
 import { LANGUAGES, useI18n } from "../i18n/I18nContext.jsx";
 
 export default function Header({ orgName }) {
-  const { profile, isAuthenticated, signOut } = useAuth();
+  const { profile, actingTenant, isAuthenticated, signOut } = useAuth();
   const { lang, setLang, t } = useI18n();
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const platformAdmin = isPlatformAdmin(profile);
   const company =
     orgName ||
+    (platformAdmin ? actingTenant?.companyName || t("header.platform") : null) ||
     profile?.companyName ||
     (profile ? t("header.organization", { id: profile.tenantId }) : "Attendance");
 

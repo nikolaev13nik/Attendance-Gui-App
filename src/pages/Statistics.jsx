@@ -23,9 +23,8 @@ function days(value) {
 
 export default function Statistics() {
   const navigate = useNavigate();
-  const { token, profile } = useAuth();
+  const { token, profile, tenantId } = useAuth();
   const { t } = useI18n();
-  const tenantId = profile.tenantId;
 
   const [users, setUsers] = useState([]);
   const [targetMonth, setTargetMonth] = useState(localMonth());

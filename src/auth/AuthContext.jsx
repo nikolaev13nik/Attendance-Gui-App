@@ -1,7 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { login as loginRequest } from "../api/accounting.js";
+import { workingTenantId } from "./roles.js";
 
 const STORAGE_KEY = "attendance.auth";
+const ACTING_TENANT_KEY = "attendance.actingTenant";
 
 const AuthContext = createContext(null);
 
@@ -37,12 +39,42 @@ function writeStored(session) {
   }
 }
 
+function readActingTenant() {
+  try {
+    const raw = sessionStorage.getItem(ACTING_TENANT_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeActingTenant(actingTenant) {
+  try {
+    if (actingTenant) {
+      sessionStorage.setItem(ACTING_TENANT_KEY, JSON.stringify(actingTenant));
+    } else {
+      sessionStorage.removeItem(ACTING_TENANT_KEY);
+    }
+  } catch {
+    /* storage unavailable; the choice stays in memory only */
+  }
+}
+
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(readStored);
+  const [actingTenant, setActingTenant] = useState(() => (readStored() ? readActingTenant() : null));
+
+  const chooseTenant = useCallback((tenant) => {
+    const next = tenant ? { tenantId: tenant.tenantId, companyName: tenant.companyName } : null;
+    writeActingTenant(next);
+    setActingTenant(next);
+  }, []);
 
   const signOut = useCallback(() => {
     writeStored(null);
+    writeActingTenant(null);
     setSession(null);
+    setActingTenant(null);
   }, []);
 
   const signIn = useCallback(async ({ idUser, password, tenantId, companyName }) => {
@@ -53,7 +85,9 @@ export function AuthProvider({ children }) {
       expiresAt: Date.now() + Number(response.expiresIn ?? 0) * 1000,
     };
     writeStored(next);
+    writeActingTenant(null);
     setSession(next);
+    setActingTenant(null);
     return next;
   }, []);
 
@@ -75,10 +109,13 @@ export function AuthProvider({ children }) {
       token: session?.token ?? null,
       profile: session?.profile ?? null,
       isAuthenticated: Boolean(session),
+      actingTenant,
+      tenantId: workingTenantId(session?.profile ?? null, actingTenant),
+      chooseTenant,
       signIn,
       signOut,
     }),
-    [session, signIn, signOut],
+    [session, actingTenant, chooseTenant, signIn, signOut],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

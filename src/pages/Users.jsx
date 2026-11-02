@@ -13,9 +13,8 @@ const EMPTY_CREATE = { idUser: "", firstName: "", lastName: "", email: "", passw
 
 export default function Users() {
   const navigate = useNavigate();
-  const { token, profile } = useAuth();
+  const { token, profile, tenantId } = useAuth();
   const { t, roleLabel } = useI18n();
-  const tenantId = profile.tenantId;
 
   const [users, setUsers] = useState(null);
   const [failure, setFailure] = useState(null);

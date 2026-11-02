@@ -20,7 +20,7 @@ import {
 } from "../api/timetracking.js";
 import { daysAgo, localWorkDate, timestampOn, toTimeInput } from "../api/time.js";
 import { useAuth } from "../auth/AuthContext.jsx";
-import { displayName, isAdministrator } from "../auth/roles.js";
+import { displayName, isAdministrator, selectableUserId } from "../auth/roles.js";
 import { msg, useI18n } from "../i18n/I18nContext.jsx";
 
 const TIME_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
@@ -29,9 +29,8 @@ const emptyLeaveForm = (date) => ({ date, sick: "0", vacation: "1" });
 
 export default function Sessions() {
   const navigate = useNavigate();
-  const { token, profile } = useAuth();
+  const { token, profile, tenantId } = useAuth();
   const { t } = useI18n();
-  const tenantId = profile.tenantId;
   const admin = isAdministrator(profile);
   const today = localWorkDate();
 
@@ -65,7 +64,11 @@ export default function Sessions() {
       return;
     }
     listUsers({ tenantId, token })
-      .then((list) => setUsers(list || []))
+      .then((list) => {
+        const loaded = list || [];
+        setUsers(loaded);
+        setFilters((prev) => ({ ...prev, idUser: selectableUserId(loaded, prev.idUser) }));
+      })
       .catch((error) => setFailure(error));
   }, [admin, tenantId, token]);
 

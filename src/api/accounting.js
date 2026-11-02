@@ -44,6 +44,11 @@ export function login({ idUser, password, tenantId, companyName }) {
 }
 
 
+export function listTenants({ token, page, size }) {
+  const query = new URLSearchParams({ page: String(page), size: String(size) });
+  return request(`/account/tenants?${query}`, { token });
+}
+
 export function listUsers({ tenantId, token }) {
   return request(`${tenantPath(tenantId)}/users`, { token });
 }

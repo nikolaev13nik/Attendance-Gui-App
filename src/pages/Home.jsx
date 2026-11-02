@@ -2,32 +2,37 @@ import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout.jsx";
 import MessageAdmin from "../components/MessageAdmin.jsx";
 import { useAuth } from "../auth/AuthContext.jsx";
-import { displayName, isAdministrator } from "../auth/roles.js";
+import { displayName, isAdministrator, isPlatformAdmin } from "../auth/roles.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
 
 export default function Home() {
   const navigate = useNavigate();
   const { t } = useI18n();
-  const { profile } = useAuth();
+  const { profile, actingTenant } = useAuth();
   const admin = isAdministrator(profile);
+  const platformAdmin = isPlatformAdmin(profile);
 
   return (
     <Layout>
       <div className="card card--narrow">
         <h1 className="card__title">{t("home.welcome", { name: displayName(profile) })}</h1>
         <p className="card__hint">
-          {admin
-            ? t("home.adminHint")
-            : t("home.userHint")}
+          {platformAdmin
+            ? t("home.platformHint", { company: actingTenant?.companyName ?? "" })
+            : admin
+              ? t("home.adminHint")
+              : t("home.userHint")}
         </p>
         <div className="stack">
-          <button
-            type="button"
-            className="btn btn--primary btn--block btn--large"
-            onClick={() => navigate("/session")}
-          >
-            {t("home.reportSession")}
-          </button>
+          {platformAdmin ? null : (
+            <button
+              type="button"
+              className="btn btn--primary btn--block btn--large"
+              onClick={() => navigate("/session")}
+            >
+              {t("home.reportSession")}
+            </button>
+          )}
           <button
             type="button"
             className="btn btn--block btn--large"

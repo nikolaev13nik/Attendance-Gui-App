@@ -8,16 +8,15 @@ import { listUsers } from "../api/accounting.js";
 import { addLeaveDays, getLeaveDays, getSessions } from "../api/timetracking.js";
 import { daysAgo, localWorkDate } from "../api/time.js";
 import { useAuth } from "../auth/AuthContext.jsx";
-import { displayName } from "../auth/roles.js";
+import { displayName, selectableUserId } from "../auth/roles.js";
 import { msg, useI18n } from "../i18n/I18nContext.jsx";
 
 const emptyRow = () => ({ date: localWorkDate(), vacation: "1", sick: "0" });
 
 export default function LeaveDays() {
   const navigate = useNavigate();
-  const { token, profile } = useAuth();
+  const { token, profile, tenantId } = useAuth();
   const { t, text } = useI18n();
-  const tenantId = profile.tenantId;
 
   const [users, setUsers] = useState([]);
   const [idUser, setIdUser] = useState(String(profile.idUser));
@@ -35,7 +34,11 @@ export default function LeaveDays() {
 
   useEffect(() => {
     listUsers({ tenantId, token })
-      .then((list) => setUsers(list || []))
+      .then((list) => {
+        const loaded = list || [];
+        setUsers(loaded);
+        setIdUser((prev) => selectableUserId(loaded, prev));
+      })
       .catch((error) => setFailure(error));
   }, [tenantId, token]);
 
