@@ -24,7 +24,8 @@ export default function Users() {
   const [createForm, setCreateForm] = useState(EMPTY_CREATE);
   const [createErrors, setCreateErrors] = useState({});
   const [editing, setEditing] = useState(null);
-  const [editForm, setEditForm] = useState({ firstName: "", lastName: "", email: "", password: "" });
+  const [editForm, setEditForm] = useState({ firstName: "", lastName: "", email: "", password: "", currentPassword: "" });
+  const [editErrors, setEditErrors] = useState({});
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [confirmRole, setConfirmRole] = useState(null);
 
@@ -104,6 +105,12 @@ export default function Users() {
   async function submitEdit(event) {
     event.preventDefault();
     const target = editing;
+    const changingOwnPassword = editingSelf && editForm.password !== "";
+    if (changingOwnPassword && editForm.currentPassword === "") {
+      setEditErrors({ currentPassword: msg("validation.currentPasswordRequired") });
+      return;
+    }
+    setEditErrors({});
     const ok = await act(
       "edit",
       () =>
@@ -115,6 +122,7 @@ export default function Users() {
           lastName: editForm.lastName.trim() || undefined,
           email: editForm.email.trim() || undefined,
           password: editForm.password || undefined,
+          currentPassword: changingOwnPassword ? editForm.currentPassword : undefined,
         }),
       msg("users.updated", { id: target.idUser }),
     );
@@ -127,6 +135,7 @@ export default function Users() {
     setter((prev) => ({ ...prev, [key]: event.target.value }));
   const updateCreate = update(setCreateForm);
   const updateEdit = update(setEditForm);
+  const editingSelf = Boolean(editing) && editing.idUser === profile.idUser && tenantId === profile.tenantId;
 
   const modalOpen = Boolean(creating || editing || confirmRole || confirmDelete);
 
@@ -208,11 +217,13 @@ export default function Users() {
                             onClick={() => {
                               setFailure(null);
                               setEditing(user);
+                              setEditErrors({});
                               setEditForm({
                                 firstName: user.firstName || "",
                                 lastName: user.lastName || "",
                                 email: user.email || "",
                                 password: "",
+                                currentPassword: "",
                               });
                             }}
                           >
@@ -331,6 +342,16 @@ export default function Users() {
               hint={t("users.newPasswordHint")}
               autoComplete="new-password"
             />
+            {editingSelf && editForm.password !== "" ? (
+              <Field
+                label={t("users.currentPassword")}
+                type="password"
+                value={editForm.currentPassword}
+                onChange={updateEdit("currentPassword")}
+                error={editErrors.currentPassword}
+                autoComplete="current-password"
+              />
+            ) : null}
           </form>
         </Modal>
       ) : null}

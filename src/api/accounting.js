@@ -62,11 +62,11 @@ export function listUsers({ tenantId, token }) {
   return request(`${tenantPath(tenantId)}/users`, { token });
 }
 
-export function editUser({ tenantId, idUser, token, firstName, lastName, email, password }) {
+export function editUser({ tenantId, idUser, token, firstName, lastName, email, password, currentPassword }) {
   return request(`${tenantPath(tenantId)}/user/password/${encodeURIComponent(idUser)}`, {
     method: "PUT",
     token,
-    body: { firstName, lastName, email, password },
+    body: { firstName, lastName, email, password, currentPassword },
     messages: {
       403: "api.editForbidden",
       404: "api.userNotFound",

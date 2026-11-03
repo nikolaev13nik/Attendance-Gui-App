@@ -33,6 +33,7 @@ export default {
 
   "validation.email": "Enter a valid email address.",
   "validation.passwordLength": "Use at least 4 characters.",
+  "validation.currentPasswordRequired": "Enter your current password to change it.",
   "validation.wholeNumber": "Enter a whole number of 1 or more.",
 
   "role.USER": "User",
@@ -284,6 +285,7 @@ export default {
   "users.editTitle": "Edit user {id}",
   "users.newPassword": "New password",
   "users.newPasswordHint": "Leave blank to keep the current password.",
+  "users.currentPassword": "Current password",
   "users.grantTitle": "Grant administrator",
   "users.revokeTitle": "Revoke administrator",
   "users.grantConfirm":

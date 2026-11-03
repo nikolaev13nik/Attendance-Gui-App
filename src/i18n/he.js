@@ -33,6 +33,7 @@ export default {
 
   "validation.email": "יש להזין כתובת דוא״ל תקינה.",
   "validation.passwordLength": "יש להשתמש בלפחות 4 תווים.",
+  "validation.currentPasswordRequired": "יש להזין את הסיסמה הנוכחית כדי לשנות אותה.",
   "validation.wholeNumber": "יש להזין מספר שלם, 1 ומעלה.",
 
   "role.USER": "משתמש",
@@ -276,6 +277,7 @@ export default {
   "users.editTitle": "עריכת משתמש {id}",
   "users.newPassword": "סיסמה חדשה",
   "users.newPasswordHint": "השאירו ריק כדי לשמור על הסיסמה הנוכחית.",
+  "users.currentPassword": "סיסמה נוכחית",
   "users.grantTitle": "הענקת הרשאת מנהל",
   "users.revokeTitle": "ביטול הרשאת מנהל",
   "users.grantConfirm": "להעניק ל-{name} (מס׳ {id}) הרשאות מנהל? הוא יוכל לנהל כל משתמש וכל משמרת בארגון זה.",

@@ -33,6 +33,7 @@ export default {
 
   "validation.email": "Введите корректный адрес эл. почты.",
   "validation.passwordLength": "Используйте не менее 4 символов.",
+  "validation.currentPasswordRequired": "Введите текущий пароль, чтобы его изменить.",
   "validation.wholeNumber": "Введите целое число от 1 и больше.",
 
   "role.USER": "Пользователь",
@@ -290,6 +291,7 @@ export default {
   "users.editTitle": "Изменить пользователя {id}",
   "users.newPassword": "Новый пароль",
   "users.newPasswordHint": "Оставьте пустым, чтобы сохранить текущий пароль.",
+  "users.currentPassword": "Текущий пароль",
   "users.grantTitle": "Назначить администратора",
   "users.revokeTitle": "Снять роль администратора",
   "users.grantConfirm":
