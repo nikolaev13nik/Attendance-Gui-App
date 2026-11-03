@@ -35,7 +35,6 @@ function writeStored(session) {
       sessionStorage.removeItem(STORAGE_KEY);
     }
   } catch {
-    /* storage unavailable; the session stays in memory only */
   }
 }
 
@@ -56,7 +55,6 @@ function writeActingTenant(actingTenant) {
       sessionStorage.removeItem(ACTING_TENANT_KEY);
     }
   } catch {
-    /* storage unavailable; the choice stays in memory only */
   }
 }
 

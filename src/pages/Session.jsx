@@ -27,7 +27,6 @@ function writeRecord(key, record) {
   try {
     sessionStorage.setItem(key, JSON.stringify(record));
   } catch {
-    /* storage unavailable; the record stays in memory only */
   }
 }
 
