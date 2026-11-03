@@ -5,13 +5,22 @@ function tenantPath(tenantId) {
   return `/account/tenant/${encodeURIComponent(tenantId)}`;
 }
 
-export async function signUp({ companyName, phone, idUser, password, firstName, lastName, email }) {
+const CAPTCHA_REJECTED = "Captcha check failed. Reload the page and try again";
+const CAPTCHA_UNAVAILABLE = "The captcha could not be verified right now. Try again in a minute";
+
+export async function signUp({ companyName, phone, idUser, password, firstName, lastName, email, captchaToken }) {
   try {
     return await request("/account/signup", {
       method: "POST",
-      body: { companyName, phone, idUser, password, firstName, lastName, email },
+      body: { companyName, phone, idUser, password, firstName, lastName, email, captchaToken },
     });
   } catch (error) {
+    if (error.serverMessage === CAPTCHA_REJECTED) {
+      throw new ApiError(error.status, msg("api.captchaRejected"), error.serverMessage, error.body);
+    }
+    if (error.serverMessage === CAPTCHA_UNAVAILABLE) {
+      throw new ApiError(error.status, msg("api.captchaUnavailable"), error.serverMessage, error.body);
+    }
     if (error.status === 409) {
       const key = error.serverMessage === "tenant exists" ? "api.tenantExists" : "api.userExists";
       throw new ApiError(409, msg(key), error.serverMessage, error.body);

@@ -9,6 +9,8 @@ image:
 
 overtimeDailyThreshold: "8.00"
 
+turnstileSiteKey: "1x00000000000000000000AA"
+
 service:
   port: 8080
   targetPort: 8080

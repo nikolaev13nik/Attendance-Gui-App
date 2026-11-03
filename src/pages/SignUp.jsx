@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Layout from "../components/Layout.jsx";
 import Notice from "../components/Notice.jsx";
 import Field from "../components/Field.jsx";
+import Turnstile from "../components/Turnstile.jsx";
+import { loadConfig } from "../api/config.js";
 import { signUp } from "../api/accounting.js";
 import { msg, useI18n } from "../i18n/I18nContext.jsx";
 
@@ -24,6 +26,23 @@ export default function SignUp() {
   const [failure, setFailure] = useState(null);
   const [created, setCreated] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [siteKey, setSiteKey] = useState(null);
+  const [captchaToken, setCaptchaToken] = useState(null);
+  const [captchaResets, setCaptchaResets] = useState(0);
+
+  useEffect(() => {
+    let current = true;
+    loadConfig().then((config) => {
+      if (current) {
+        setSiteKey(config.turnstileSiteKey);
+      }
+    });
+    return () => {
+      current = false;
+    };
+  }, []);
+
+  const onCaptchaToken = useCallback((token) => setCaptchaToken(token), []);
 
   const update = (key) => (event) => setForm((prev) => ({ ...prev, [key]: event.target.value }));
 
@@ -60,6 +79,10 @@ export default function SignUp() {
     if (!validate()) {
       return;
     }
+    if (captchaToken === null) {
+      setFailure(msg("signup.captchaPending"));
+      return;
+    }
     setBusy(true);
     try {
       const result = await signUp({
@@ -70,10 +93,12 @@ export default function SignUp() {
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
         email: form.email.trim(),
+        captchaToken,
       });
       setCreated(result);
     } catch (error) {
       setFailure(error);
+      setCaptchaResets((count) => count + 1);
     } finally {
       setBusy(false);
     }
@@ -191,7 +216,10 @@ export default function SignUp() {
             error={errors.password}
             autoComplete="new-password"
           />
-          <button type="submit" className="btn btn--primary btn--block" disabled={busy}>
+          {siteKey ? (
+            <Turnstile siteKey={siteKey} onToken={onCaptchaToken} resetCount={captchaResets} />
+          ) : null}
+          <button type="submit" className="btn btn--primary btn--block" disabled={busy || captchaToken === null}>
             {busy ? t("common.creating") : t("signup.submit")}
           </button>
         </form>

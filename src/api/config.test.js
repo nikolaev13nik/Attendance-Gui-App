@@ -17,7 +17,7 @@ describe("loadConfig", () => {
     const fetchMock = vi.fn(() => respond(200, '{"overtimeDailyThreshold": "8.40"}'));
     vi.stubGlobal("fetch", fetchMock);
     const { loadConfig } = await import("./config.js");
-    expect(await loadConfig()).toEqual({ overtimeDailyThresholdMinutes: 520 });
+    expect(await loadConfig()).toEqual({ overtimeDailyThresholdMinutes: 520, turnstileSiteKey: "1x00000000000000000000AA" });
     expect(fetchMock).toHaveBeenCalledWith("/config.json", expect.anything());
   });
 
@@ -39,5 +39,11 @@ describe("loadConfig", () => {
     vi.stubGlobal("fetch", vi.fn(() => respond(200, '{"overtimeDailyThreshold": "8.75"}')));
     const { loadConfig, DEFAULT_CONFIG } = await import("./config.js");
     expect(await loadConfig()).toEqual(DEFAULT_CONFIG);
+  });
+
+  it("reads the Turnstile site key the cluster configures", async () => {
+    vi.stubGlobal("fetch", vi.fn(() => respond(200, '{"overtimeDailyThreshold": "8.00", "turnstileSiteKey": "0x4AAAAAAAlive"}')));
+    const { loadConfig } = await import("./config.js");
+    expect((await loadConfig()).turnstileSiteKey).toBe("0x4AAAAAAAlive");
   });
 });

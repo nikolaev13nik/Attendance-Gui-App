@@ -6,5 +6,6 @@ metadata:
 data:
   config.json: |
     {
-      "overtimeDailyThreshold": {{ .Values.overtimeDailyThreshold | toString | quote }}
+      "overtimeDailyThreshold": {{ .Values.overtimeDailyThreshold | toString | quote }},
+      "turnstileSiteKey": {{ .Values.turnstileSiteKey | quote }}
     }

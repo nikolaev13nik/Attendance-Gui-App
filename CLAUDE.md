@@ -105,7 +105,15 @@ Two things in `default.conf` are load-bearing and non-obvious:
 `/healthz` is the probe path, standing in for the Java services' `/actuator/health`.
 
 `/config.json` is the one piece of runtime config, read once by `src/api/config.js` and served
-`no-store`. The image ships `public/config.json` with the defaults, which is what Compose and `npm run dev`
+`no-store`. Besides the overtime threshold it carries `turnstileSiteKey`, the public half of the Cloudflare
+Turnstile pair: `SignUp.jsx` renders `components/Turnstile.jsx` with it (the script loads from
+`challenges.cloudflare.com` on that page only) and sends the token it yields as `captchaToken`; the button
+stays disabled until there is one, and every failed submit resets the widget because a token is single-use.
+`helm/gui/values.yaml` keeps Cloudflare's always-pass test site key `1x00000000000000000000AA`, which Argo CD
+deploys to the local cluster; the real key, registered for `nik-attendance-app.duckdns.org` only, is in
+`helm/gui/values-gcp.yaml`, which only the GKE deploy passes (`helm upgrade gui ./helm/gui -f
+helm/gui/values-gcp.yaml`). The real key fails on any other hostname, so never move it into `values.yaml`.
+The secret half never reaches this app. The image ships `public/config.json` with the defaults, which is what Compose and `npm run dev`
 see; in Kubernetes the `gui-config` ConfigMap is mounted over it with `subPath`. Its only key is
 `overtimeDailyThreshold`, a string in `H.MM` clock time — `"8.40"` is 8h40m, and a single minute digit
 is right-padded so an unquoted YAML `8.40` (a float, `8.4`) means the same — parsed by `clockMinutes` in
