@@ -67,7 +67,7 @@ export default function Companies() {
           <p className="spinner">{t("companies.none")}</p>
         ) : (
           <div className="table-wrap">
-            <table className="table">
+            <table className="table table--cards">
               <thead>
                 <tr>
                   <th>{t("companies.id")}</th>
@@ -80,11 +80,11 @@ export default function Companies() {
               <tbody>
                 {items.map((tenant) => (
                   <tr key={tenant.tenantId}>
-                    <td>{tenant.tenantId}</td>
-                    <td>{tenant.companyName}</td>
-                    <td>{tenant.contactName || "—"}</td>
-                    <td>{tenant.status || "—"}</td>
-                    <td className="table__actions">
+                    <td data-label={t("companies.id")}>{tenant.tenantId}</td>
+                    <td className="table__primary">{tenant.companyName}</td>
+                    <td data-label={t("companies.contact")}>{tenant.contactName || "—"}</td>
+                    <td data-label={t("companies.status")}>{tenant.status || "—"}</td>
+                    <td className="table__actions table__cell-actions">
                       <button
                         type="button"
                         className={`btn${actingTenant?.tenantId === tenant.tenantId ? " btn--primary" : ""}`}

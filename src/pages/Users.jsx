@@ -177,7 +177,7 @@ export default function Users() {
           <p className="spinner">{t("users.none")}</p>
         ) : (
           <div className="table-wrap">
-            <table className="table">
+            <table className="table table--cards">
               <thead>
                 <tr>
                   <th>{t("common.idNumber")}</th>
@@ -193,13 +193,13 @@ export default function Users() {
                   const admin = isAdministrator(user);
                   return (
                     <tr key={user.idUser}>
-                      <td>{user.idUser}</td>
-                      <td>
+                      <td data-label={t("common.idNumber")}>{user.idUser}</td>
+                      <td className="table__primary">
                         {displayName(user)}
                         {self ? <span className="tag tag--you" style={{ marginInlineStart: "0.4rem" }}>{t("users.you")}</span> : null}
                       </td>
-                      <td>{user.email || "—"}</td>
-                      <td>
+                      <td data-label={t("common.email")}>{user.email || "—"}</td>
+                      <td data-label={t("users.roles")}>
                         {(user.roles || []).map((role) => (
                           <span
                             key={role}
@@ -209,7 +209,7 @@ export default function Users() {
                           </span>
                         ))}
                       </td>
-                      <td>
+                      <td className="table__cell-actions">
                         <div className="table__actions">
                           <button
                             type="button"

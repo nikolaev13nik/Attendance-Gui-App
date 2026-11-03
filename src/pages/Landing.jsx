@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout.jsx";
 import Notice from "../components/Notice.jsx";
+import Icon from "../components/Icon.jsx";
 import { useI18n } from "../i18n/I18nContext.jsx";
 
 export default function Landing() {
@@ -9,8 +10,11 @@ export default function Landing() {
 
   return (
     <Layout>
-      <div className="card card--narrow">
-        <h1 className="card__title">Attendance</h1>
+      <div className="card card--narrow landing">
+        <span className="landing__mark">
+          <Icon name="clock" />
+        </span>
+        <h1 className="landing__title">Attendance</h1>
         <p className="card__hint">{t("landing.about")}</p>
         <Notice kind="info">{t("landing.firstVisit")}</Notice>
         <div className="stack">

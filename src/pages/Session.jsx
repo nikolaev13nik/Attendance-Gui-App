@@ -43,6 +43,26 @@ function statusOf(record) {
   return "closed";
 }
 
+function secondsBetween(from, to) {
+  const start = new Date(from).getTime();
+  const end = new Date(to).getTime();
+  if (Number.isNaN(start) || Number.isNaN(end) || end < start) {
+    return 0;
+  }
+  return Math.floor((end - start) / 1000);
+}
+
+function workedToday(sessions, workDate, now) {
+  return sessions
+    .filter((session) => session.workDate === workDate && session.openSessionDate)
+    .reduce((sum, session) => sum + secondsBetween(session.openSessionDate, session.closeSessionDate || now), 0);
+}
+
+function formatClock(seconds) {
+  const two = (value) => String(value).padStart(2, "0");
+  return `${Math.floor(seconds / 3600)}:${two(Math.floor(seconds / 60) % 60)}:${two(seconds % 60)}`;
+}
+
 export default function Session() {
   const { token, profile } = useAuth();
   const { t } = useI18n();
@@ -59,6 +79,7 @@ export default function Session() {
   const [historyFailure, setHistoryFailure] = useState(null);
   const [sortDesc, setSortDesc] = useState(true);
   const [startDesc, setStartDesc] = useState(false);
+  const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
     setRecord(readRecord(key));
@@ -102,6 +123,23 @@ export default function Session() {
   );
 
   const status = statusOf(record);
+
+  useEffect(() => {
+    if (status !== "open") {
+      return undefined;
+    }
+    setNow(new Date());
+    const timer = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, [status]);
+
+  const worked = workedToday(rows || (record ? [record] : []), workDate, now);
+  const statusLabel = {
+    none: t("session.statusNone"),
+    open: t("session.statusOpen"),
+    closed: t("session.statusClosed"),
+    orphan: t("session.statusOrphan"),
+  }[status];
   const openedAt = formatTime(record?.openSessionDate);
   const closedAt = formatTime(record?.closeSessionDate);
   const updateRange = (field) => (event) => setRange((prev) => ({ ...prev, [field]: event.target.value }));
@@ -109,8 +147,11 @@ export default function Session() {
 
   return (
     <Layout>
-      <div className="card card--narrow">
-        <h1 className="card__title">{t("home.reportSession")}</h1>
+      <div className="card card--narrow clock">
+        <div className="clock__head">
+          <h1 className="card__title">{t("home.reportSession")}</h1>
+          <span className={`status status--${status}`}>{statusLabel}</span>
+        </div>
         <p className="clock__date">{formatLongDate()}</p>
 
         <Notice kind="error">{failure}</Notice>
@@ -120,24 +161,34 @@ export default function Session() {
           </Notice>
         ) : null}
 
-        <div className="clock__state">
-          {status === "none" ? (
-            <p style={{ margin: 0 }}>{t("session.none")}</p>
-          ) : (
-            <dl>
-              <dt>{t("session.started")}</dt>
-              <dd>{openedAt || t("session.notRecorded")}</dd>
-              <dt>{t("session.ended")}</dt>
-              <dd>{closedAt || t("session.stillOpen")}</dd>
+        {status === "none" ? (
+          <p className="clock__empty">{t("session.none")}</p>
+        ) : (
+          <>
+            {status === "orphan" ? null : (
+              <div className="clock__worked">
+                <span className="clock__worked-value">{formatClock(worked)}</span>
+                <span className="clock__worked-label">{t("session.worked")}</span>
+              </div>
+            )}
+            <dl className="clock__times">
+              <div>
+                <dt>{t("session.started")}</dt>
+                <dd>{openedAt || t("session.notRecorded")}</dd>
+              </div>
+              <div>
+                <dt>{t("session.ended")}</dt>
+                <dd>{closedAt || t("session.stillOpen")}</dd>
+              </div>
             </dl>
-          )}
-        </div>
+          </>
+        )}
 
         <div className="stack">
           {status === "open" ? (
             <button
               type="button"
-              className="btn btn--primary btn--block btn--large"
+              className="btn btn--primary btn--block btn--xl"
               disabled={busy !== null}
               onClick={() => run(closeSession, "close")}
             >
@@ -146,7 +197,7 @@ export default function Session() {
           ) : (
             <button
               type="button"
-              className="btn btn--primary btn--block btn--large"
+              className="btn btn--primary btn--block btn--xl"
               disabled={busy !== null}
               onClick={() => run(openSession, "open")}
             >
@@ -171,9 +222,9 @@ export default function Session() {
             </button>
           ) : null}
         </div>
+      </div>
 
-        <hr style={{ margin: "1.5rem 0 1rem", border: "none", borderTop: "1px solid var(--border)" }} />
-
+      <div className="card card--narrow">
         <MessageAdmin
           heading={t("session.wrongHeading")}
           hint={t("session.wrongHint")}

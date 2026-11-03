@@ -95,11 +95,11 @@ export default function SessionTable({
 
   return (
     <div className="table-wrap">
-      <table className="table">
+      <table className="table table--cards">
         <thead>
           <tr>
             <th>{t("table.type")}</th>
-            <th>
+            <th className="table__sortable">
               {onToggleSort ? (
                 <button type="button" className="btn btn--link" onClick={onToggleSort}>
                   {t("common.date")} {sortDesc ? "↓" : "↑"}
@@ -108,7 +108,7 @@ export default function SessionTable({
                 t("common.date")
               )}
             </th>
-            <th>
+            <th className="table__sortable">
               {onToggleStartSort ? (
                 <button type="button" className="btn btn--link" onClick={onToggleStartSort}>
                   {t("common.start")} {startDesc ? "\u2193" : "\u2191"}
@@ -129,19 +129,19 @@ export default function SessionTable({
           {entries.map((entry, index) =>
             entry.kind === "leave" ? (
               <tr key={`leave-${entry.row.id}`} className={shaded[index] ? "table__day--alt" : undefined}>
-                <td>{t("table.leaveDay")}</td>
-                <td className="table__nowrap">{entry.row.date}</td>
-                <td>&mdash;</td>
-                <td>&mdash;</td>
+                <td data-label={t("table.type")}>{t("table.leaveDay")}</td>
+                <td className="table__nowrap table__primary">{entry.row.date}</td>
+                <td className="table__blank">&mdash;</td>
+                <td className="table__blank">&mdash;</td>
                 <td />
                 <td />
-                <td>{portion(entry.row.sickAmount)}</td>
-                <td>{portion(entry.row.vacationAmount)}</td>
-                {actions ? <td>{actions(entry)}</td> : null}
+                <td data-label={t("common.sickness")}>{portion(entry.row.sickAmount)}</td>
+                <td data-label={t("common.vacation")}>{portion(entry.row.vacationAmount)}</td>
+                {actions ? <td className="table__cell-actions">{actions(entry)}</td> : null}
               </tr>
             ) : (
               <tr key={`session-${entry.row.id}`} className={shaded[index] ? "table__day--alt" : undefined}>
-                <td>
+                <td data-label={t("table.type")}>
                   {t("table.workHours")}
                   {needsFixing.has(entry.row.id) ? (
                     <>
@@ -150,29 +150,29 @@ export default function SessionTable({
                     </>
                   ) : null}
                 </td>
-                <td className="table__nowrap">{entry.row.workDate}</td>
-                <td className="table__nowrap">
+                <td className="table__nowrap table__primary">{entry.row.workDate}</td>
+                <td className="table__nowrap" data-label={t("common.start")}>
                   {formatTime(entry.row.openSessionDate) || <span className="tag">{t("table.missing")}</span>}
                 </td>
-                <td className="table__nowrap">
+                <td className="table__nowrap" data-label={t("common.end")}>
                   {formatTime(entry.row.closeSessionDate) || <span className="tag">{t("table.missing")}</span>}
                 </td>
-                <td>{formatDuration(hours.get(entry.row.id)?.total)}</td>
-                <td>{formatDuration(hours.get(entry.row.id)?.overtime)}</td>
-                <td>&mdash;</td>
-                <td>&mdash;</td>
-                {actions ? <td>{actions(entry)}</td> : null}
+                <td data-label={t("table.totalHours")}>{formatDuration(hours.get(entry.row.id)?.total)}</td>
+                <td data-label={t("table.overtime")}>{formatDuration(hours.get(entry.row.id)?.overtime)}</td>
+                <td className="table__blank">&mdash;</td>
+                <td className="table__blank">&mdash;</td>
+                {actions ? <td className="table__cell-actions">{actions(entry)}</td> : null}
               </tr>
             ),
           )}
         </tbody>
         <tfoot>
           <tr className="table__totals">
-            <td colSpan={4}>{t("table.sum")}</td>
-            <td>{formatDuration(totals.total)}</td>
-            <td>{formatDuration(totals.overtime)}</td>
-            <td>{portion(totals.sick)}</td>
-            <td>{portion(totals.vacation)}</td>
+            <td colSpan={4} className="table__primary">{t("table.sum")}</td>
+            <td data-label={t("table.totalHours")}>{formatDuration(totals.total)}</td>
+            <td data-label={t("table.overtime")}>{formatDuration(totals.overtime)}</td>
+            <td data-label={t("common.sickness")}>{portion(totals.sick)}</td>
+            <td data-label={t("common.vacation")}>{portion(totals.vacation)}</td>
             {actions ? <td /> : null}
           </tr>
         </tfoot>

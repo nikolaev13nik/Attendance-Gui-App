@@ -83,17 +83,19 @@ export default function Login() {
         <p className="card__hint">{t("login.hint")}</p>
         <Notice kind="error">{failure}</Notice>
 
-        <div className="row" style={{ marginBottom: "1rem" }}>
+        <div className="segmented">
           <button
             type="button"
-            className={`btn${by === "name" ? " btn--primary" : ""}`}
+            className={`segmented__option${by === "name" ? " segmented__option--active" : ""}`}
+            aria-pressed={by === "name"}
             onClick={() => switchTo("name")}
           >
             {t("login.companyName")}
           </button>
           <button
             type="button"
-            className={`btn${by === "id" ? " btn--primary" : ""}`}
+            className={`segmented__option${by === "id" ? " segmented__option--active" : ""}`}
+            aria-pressed={by === "id"}
             onClick={() => switchTo("id")}
           >
             {t("login.organizationId")}
@@ -141,7 +143,7 @@ export default function Login() {
             error={errors.password}
             autoComplete="current-password"
           />
-          <button type="submit" className="btn btn--primary btn--block" disabled={busy}>
+          <button type="submit" className="btn btn--primary btn--block btn--xl" disabled={busy}>
             {busy ? t("login.submitting") : t("login.submit")}
           </button>
         </form>

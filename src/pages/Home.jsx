@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout.jsx";
 import MessageAdmin from "../components/MessageAdmin.jsx";
+import Icon from "../components/Icon.jsx";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { displayName, isAdministrator, isPlatformAdmin } from "../auth/roles.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
@@ -12,10 +13,37 @@ export default function Home() {
   const admin = isAdministrator(profile);
   const platformAdmin = isPlatformAdmin(profile);
 
+  const tiles = [
+    platformAdmin
+      ? null
+      : {
+          to: "/session",
+          icon: "clock",
+          title: t("home.reportSession"),
+          desc: t("home.reportSessionDesc"),
+          primary: true,
+        },
+    {
+      to: "/sessions",
+      icon: "list",
+      title: admin ? t("home.reviewSessions") : t("home.mySessions"),
+      desc: admin ? t("home.reviewSessionsDesc") : t("home.mySessionsDesc"),
+    },
+    admin
+      ? { to: "/leave-days", icon: "calendar", title: t("home.reportLeave"), desc: t("home.reportLeaveDesc") }
+      : null,
+    admin
+      ? { to: "/statistics", icon: "chart", title: t("home.statistics"), desc: t("home.statisticsDesc") }
+      : null,
+    admin
+      ? { to: "/users", icon: "users", title: t("home.manageUsers"), desc: t("home.manageUsersDesc") }
+      : null,
+  ].filter(Boolean);
+
   return (
     <Layout>
-      <div className="card card--narrow">
-        <h1 className="card__title">{t("home.welcome", { name: displayName(profile) })}</h1>
+      <section className="home">
+        <h1 className="home__title">{t("home.welcome", { name: displayName(profile) })}</h1>
         <p className="card__hint">
           {platformAdmin
             ? t("home.platformHint", { company: actingTenant?.companyName ?? "" })
@@ -23,62 +51,38 @@ export default function Home() {
               ? t("home.adminHint")
               : t("home.userHint")}
         </p>
-        <div className="stack">
-          {platformAdmin ? null : (
+
+        <div className="tiles">
+          {tiles.map((tile) => (
             <button
+              key={tile.to}
               type="button"
-              className="btn btn--primary btn--block btn--large"
-              onClick={() => navigate("/session")}
+              className={tile.primary ? "tile tile--primary" : "tile"}
+              onClick={() => navigate(tile.to)}
             >
-              {t("home.reportSession")}
+              <span className="tile__icon">
+                <Icon name={tile.icon} />
+              </span>
+              <span className="tile__text">
+                <span className="tile__title">{tile.title}</span>
+                <span className="tile__desc">{tile.desc}</span>
+              </span>
+              <Icon name="chevron" className="tile__chevron" />
             </button>
-          )}
-          <button
-            type="button"
-            className="btn btn--block btn--large"
-            onClick={() => navigate("/sessions")}
-          >
-            {admin ? t("home.reviewSessions") : t("home.mySessions")}
-          </button>
-          {admin ? (
-            <>
-              <button
-                type="button"
-                className="btn btn--block btn--large"
-                onClick={() => navigate("/leave-days")}
-              >
-                {t("home.reportLeave")}
-              </button>
-              <button
-                type="button"
-                className="btn btn--block btn--large"
-                onClick={() => navigate("/statistics")}
-              >
-                {t("home.statistics")}
-              </button>
-              <button
-                type="button"
-                className="btn btn--block btn--large"
-                onClick={() => navigate("/users")}
-              >
-                {t("home.manageUsers")}
-              </button>
-            </>
-          ) : null}
+          ))}
         </div>
 
         {admin ? null : (
-          <>
-            <hr style={{ margin: "1.5rem 0 1rem", border: "none", borderTop: "1px solid var(--border)" }} />
+          <div className="card">
             <MessageAdmin
               heading={t("home.correctHeading")}
               hint={t("home.correctHint")}
               subject={t("home.mailSubject", { name: displayName(profile), id: profile.idUser })}
               bodyTemplate={t("home.mailBody")}
             />
-          </>
+          </div>
         )}
-      </div>
+      </section>
     </Layout>
   );
 }

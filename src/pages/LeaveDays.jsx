@@ -173,7 +173,7 @@ export default function LeaveDays() {
           </Field>
 
           <div className="table-wrap">
-            <table className="table" style={{ marginBottom: "0.75rem" }}>
+            <table className="table table--cards" style={{ marginBottom: "0.75rem" }}>
               <thead>
                 <tr>
                   <th>{t("common.date")}</th>
@@ -185,7 +185,7 @@ export default function LeaveDays() {
               <tbody>
                 {rows.map((row, index) => (
                   <tr key={index}>
-                    <td>
+                    <td data-label={t("common.date")}>
                       <input
                         type="date"
                         className={`field__input${errors[index] ? " field__input--invalid" : ""}`}
@@ -195,7 +195,7 @@ export default function LeaveDays() {
                       />
                       {errors[index] ? <span className="field__error">{text(errors[index])}</span> : null}
                     </td>
-                    <td>
+                    <td data-label={t("common.vacation")}>
                       <select
                         className="field__input"
                         value={row.vacation}
@@ -209,7 +209,7 @@ export default function LeaveDays() {
                         ))}
                       </select>
                     </td>
-                    <td>
+                    <td data-label={t("common.sickness")}>
                       <select
                         className="field__input"
                         value={row.sick}
@@ -223,7 +223,7 @@ export default function LeaveDays() {
                         ))}
                       </select>
                     </td>
-                    <td>
+                    <td className="table__cell-actions">
                       <button
                         type="button"
                         className="btn btn--link"

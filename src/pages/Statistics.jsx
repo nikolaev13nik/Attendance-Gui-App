@@ -170,7 +170,7 @@ export default function Statistics() {
             <p className="spinner">{t("statistics.nothing")}</p>
           ) : (
             <div className="table-wrap">
-              <table className="table">
+              <table className="table table--cards">
                 <thead>
                   <tr>
                     <th>{t("common.employee")}</th>
@@ -185,13 +185,13 @@ export default function Statistics() {
                 <tbody>
                   {results.map((stat) => (
                     <tr key={stat.userId}>
-                      <td>{nameOf(stat.userId)}</td>
-                      <td>{stat.yearMonth}</td>
-                      <td>{days(stat.workDays)}</td>
-                      <td>{hours(stat.totalWorkHours)}</td>
-                      <td>{hours(stat.overtimeHours)}</td>
-                      <td>{days(stat.vacationDays)}</td>
-                      <td>{days(stat.sickDays)}</td>
+                      <td className="table__primary">{nameOf(stat.userId)}</td>
+                      <td data-label={t("common.month")}>{stat.yearMonth}</td>
+                      <td data-label={t("statistics.workDays")}>{days(stat.workDays)}</td>
+                      <td data-label={t("statistics.totalHours")}>{hours(stat.totalWorkHours)}</td>
+                      <td data-label={t("statistics.overtime")}>{hours(stat.overtimeHours)}</td>
+                      <td data-label={t("statistics.vacationDays")}>{days(stat.vacationDays)}</td>
+                      <td data-label={t("statistics.sickDays")}>{days(stat.sickDays)}</td>
                     </tr>
                   ))}
                 </tbody>
