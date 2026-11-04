@@ -52,6 +52,7 @@ export default {
   "api.generic.403": "Your role does not allow that action.",
   "api.generic.404": "That item no longer exists.",
   "api.generic.409": "That already exists.",
+  "api.generic.429": "Too many attempts. Wait a minute and try again.",
   "api.unexpected": "The server returned an unexpected status {status}.",
   "api.tenantExists": "An organization with that name is already registered. Sign in instead, or pick another name.",
   "api.userExists": "A user with that ID already exists.",

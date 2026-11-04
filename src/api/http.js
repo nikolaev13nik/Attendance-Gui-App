@@ -21,6 +21,7 @@ const GENERIC_MESSAGES = {
   403: "api.generic.403",
   404: "api.generic.404",
   409: "api.generic.409",
+  429: "api.generic.429",
 };
 
 function serverMessageOf(payload) {
