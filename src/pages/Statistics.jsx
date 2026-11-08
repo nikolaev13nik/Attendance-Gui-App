@@ -6,6 +6,7 @@ import Field from "../components/Field.jsx";
 import Modal from "../components/Modal.jsx";
 import { listUsers } from "../api/accounting.js";
 import { getMonthStatistic } from "../api/timetracking.js";
+import { formatHours } from "../api/hours.js";
 import { localMonth } from "../api/time.js";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { displayName } from "../auth/roles.js";
@@ -14,7 +15,7 @@ import { msg, useI18n } from "../i18n/I18nContext.jsx";
 const ALL_EMPLOYEES = "";
 
 function hours(value) {
-  return value === null || value === undefined ? "—" : value.toFixed(2);
+  return value === null || value === undefined ? "—" : formatHours(value);
 }
 
 function days(value) {

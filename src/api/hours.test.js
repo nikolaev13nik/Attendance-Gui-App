@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clockMinutes, dailyHours, formatDuration, sessionMinutes, tableTotals } from "./hours.js";
+import { clockMinutes, dailyHours, formatDuration, formatHours, sessionMinutes, tableTotals } from "./hours.js";
 
 function session(id, workDate, open, close) {
   return {
@@ -22,6 +22,19 @@ describe("sessionMinutes", () => {
 
   it("is empty when the end is before the start", () => {
     expect(sessionMinutes(session(1, "2024-01-02", "17:00", "09:00"))).toBeNull();
+  });
+
+  it("drops the seconds of both ends, as the table shows only hours and minutes", () => {
+    const at = (open, close) => ({
+      id: 1,
+      workDate: "2024-01-02",
+      openSessionDate: `2024-01-02T${open}Z`,
+      closeSessionDate: `2024-01-02T${close}Z`,
+    });
+    expect(sessionMinutes(at("09:00:10", "09:01:05"))).toBe(1);
+    expect(sessionMinutes(at("09:00:50", "09:01:20"))).toBe(1);
+    expect(sessionMinutes(at("09:00:00", "09:00:30"))).toBe(0);
+    expect(sessionMinutes(at("08:59:59", "17:01:00.900"))).toBe(482);
   });
 });
 
@@ -118,5 +131,18 @@ describe("formatDuration", () => {
   it("renders nothing for a missing value", () => {
     expect(formatDuration(null)).toBe("");
     expect(formatDuration(undefined)).toBe("");
+  });
+});
+
+describe("formatHours", () => {
+  it("renders decimal hours from the statistic as hours and minutes", () => {
+    expect(formatHours(483 / 60)).toBe("8:03");
+    expect(formatHours(1 / 60)).toBe("0:01");
+    expect(formatHours(0)).toBe("0:00");
+  });
+
+  it("renders nothing for a missing value", () => {
+    expect(formatHours(null)).toBe("");
+    expect(formatHours(undefined)).toBe("");
   });
 });

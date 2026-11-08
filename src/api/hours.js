@@ -8,13 +8,18 @@ function instant(isoString) {
   return Number.isNaN(parsed) ? null : parsed;
 }
 
+function minuteOf(isoString) {
+  const moment = instant(isoString);
+  return moment === null ? null : Math.floor(moment / MINUTE);
+}
+
 export function sessionMinutes(row) {
-  const open = instant(row.openSessionDate);
-  const close = instant(row.closeSessionDate);
+  const open = minuteOf(row.openSessionDate);
+  const close = minuteOf(row.closeSessionDate);
   if (open === null || close === null || close < open) {
     return null;
   }
-  return Math.round((close - open) / MINUTE);
+  return close - open;
 }
 
 export function clockMinutes(hoursDotMinutes) {
@@ -69,4 +74,11 @@ export function formatDuration(minutes) {
     return "";
   }
   return `${Math.floor(minutes / 60)}:${String(minutes % 60).padStart(2, "0")}`;
+}
+
+export function formatHours(hours) {
+  if (hours === null || hours === undefined) {
+    return "";
+  }
+  return formatDuration(Math.round(hours * 60));
 }
