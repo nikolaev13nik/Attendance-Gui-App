@@ -4,6 +4,7 @@ import { localTimestamp, localWorkDate } from "./time.js";
 const SESSION_MESSAGES = {
   400: "api.sessionDate",
   403: "api.sessionForbidden",
+  409: "api.userBusy",
 };
 
 export function openSession({ tenantId, idUser, token, at = new Date() }) {
@@ -46,22 +47,22 @@ export function checkIncomplete({ tenantId, idUser, startDate, endDate, token })
   );
 }
 
-export function changeSession({ tenantId, id, openSessionDate, closeSessionDate, token }) {
+export function changeSession({ tenantId, idUser, id, openSessionDate, closeSessionDate, token }) {
   return request(`/attendance/sessionChange/tenant/${encodeURIComponent(tenantId)}`, {
     method: "POST",
     token,
-    body: { id, openSessionDate, closeSessionDate },
-    messages: { 404: "api.sessionGone" },
+    body: { id, idUser, openSessionDate, closeSessionDate },
+    messages: { 404: "api.sessionGone", 409: "api.userBusy" },
   });
 }
 
-export function removeSession({ tenantId, id, token }) {
+export function removeSession({ tenantId, idUser, id, token }) {
   return request(
-    `/attendance/sessionRemove/tenant/${encodeURIComponent(tenantId)}/session/${encodeURIComponent(id)}`,
+    `/attendance/sessionRemove/tenant/${encodeURIComponent(tenantId)}/userId/${encodeURIComponent(idUser)}/session/${encodeURIComponent(id)}`,
     {
       method: "DELETE",
       token,
-      messages: { 404: "api.sessionGone" },
+      messages: { 404: "api.sessionGone", 409: "api.userBusy" },
     },
   );
 }
@@ -73,6 +74,7 @@ export function addLeaveDays({ tenantId, idUser, days, token }) {
       method: "POST",
       token,
       body: { days },
+      messages: { 409: "api.userBusy" },
     },
   );
 }
@@ -85,22 +87,22 @@ export function getLeaveDays({ tenantId, idUser, startDate, endDate, token }) {
   );
 }
 
-export function changeLeaveDay({ tenantId, id, date, vacationAmount, sickAmount, token }) {
+export function changeLeaveDay({ tenantId, idUser, id, date, vacationAmount, sickAmount, token }) {
   return request(`/attendance/leaveDayChange/tenant/${encodeURIComponent(tenantId)}`, {
     method: "POST",
     token,
-    body: { id, date, vacationAmount, sickAmount },
-    messages: { 404: "api.leaveGone" },
+    body: { id, idUser, date, vacationAmount, sickAmount },
+    messages: { 404: "api.leaveGone", 409: "api.userBusy" },
   });
 }
 
-export function removeLeaveDay({ tenantId, id, token }) {
+export function removeLeaveDay({ tenantId, idUser, id, token }) {
   return request(
-    `/attendance/leaveDayRemove/tenant/${encodeURIComponent(tenantId)}/leaveDay/${encodeURIComponent(id)}`,
+    `/attendance/leaveDayRemove/tenant/${encodeURIComponent(tenantId)}/userId/${encodeURIComponent(idUser)}/leaveDay/${encodeURIComponent(id)}`,
     {
       method: "DELETE",
       token,
-      messages: { 404: "api.leaveGone" },
+      messages: { 404: "api.leaveGone", 409: "api.userBusy" },
     },
   );
 }

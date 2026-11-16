@@ -182,6 +182,7 @@ export default function Sessions() {
         changeSession({
           tenantId,
           token,
+          idUser: row.userId,
           id: row.id,
           openSessionDate: editForm.open ? timestampOn(row.workDate, editForm.open) : undefined,
           closeSessionDate: editForm.close ? timestampOn(row.workDate, editForm.close) : undefined,
@@ -208,6 +209,7 @@ export default function Sessions() {
         changeLeaveDay({
           tenantId,
           token,
+          idUser: row.userId,
           id: row.id,
           date: leaveForm.date,
           sickAmount: Number(leaveForm.sick),
@@ -627,14 +629,14 @@ export default function Sessions() {
                   if (target.kind === "leave") {
                     await act(
                       "delete",
-                      () => removeLeaveDay({ tenantId, token, id: target.row.id }),
+                      () => removeLeaveDay({ tenantId, token, idUser: target.row.userId, id: target.row.id }),
                       msg("sessions.leaveDeleted", { date: target.row.date }),
                     );
                     return;
                   }
                   await act(
                     "delete",
-                    () => removeSession({ tenantId, token, id: target.row.id }),
+                    () => removeSession({ tenantId, token, idUser: target.row.userId, id: target.row.id }),
                     msg("sessions.deleted", { id: target.row.id }),
                   );
                 }}

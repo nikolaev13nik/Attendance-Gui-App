@@ -69,6 +69,7 @@ export default {
   "api.checkDates": "Check the dates and the selected employee.",
   "api.sessionGone": "That session no longer exists. Reload the list.",
   "api.leaveGone": "That leave day no longer exists. Reload the list.",
+  "api.userBusy": "Someone else is changing this employee's records right now. Wait a moment and try again.",
   "api.statisticsForbidden": "Only administrators can read employee statistics.",
 
   "header.language": "Language",
