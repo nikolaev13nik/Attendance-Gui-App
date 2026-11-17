@@ -22,6 +22,10 @@ export function sessionMinutes(row) {
   return close - open;
 }
 
+export function latestSession(sessions) {
+  return sessions.reduce((latest, session) => (latest && latest.id > session.id ? latest : session), null);
+}
+
 export function clockMinutes(hoursDotMinutes) {
   const match = /^(\d+)(?:\.(\d{1,2}))?$/.exec(String(hoursDotMinutes ?? "").trim());
   if (!match) {

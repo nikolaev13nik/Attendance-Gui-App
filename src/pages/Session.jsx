@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Layout from "../components/Layout.jsx";
 import Notice from "../components/Notice.jsx";
 import Field from "../components/Field.jsx";
@@ -6,29 +6,10 @@ import MessageAdmin from "../components/MessageAdmin.jsx";
 import SessionTable, { leaveEntries } from "../components/SessionTable.jsx";
 import { closeSession, getLeaveDays, getSessions, openSession } from "../api/timetracking.js";
 import { daysAgo, formatLongDate, formatTime, localWorkDate } from "../api/time.js";
+import { latestSession } from "../api/hours.js";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { displayName } from "../auth/roles.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
-
-function storageKey(tenantId, idUser, workDate) {
-  return `attendance.session.${tenantId}.${idUser}.${workDate}`;
-}
-
-function readRecord(key) {
-  try {
-    const raw = sessionStorage.getItem(key);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
-
-function writeRecord(key, record) {
-  try {
-    sessionStorage.setItem(key, JSON.stringify(record));
-  } catch {
-  }
-}
 
 function statusOf(record) {
   if (!record) {
@@ -68,9 +49,8 @@ export default function Session() {
   const { t } = useI18n();
   const { idUser, tenantId } = profile;
   const workDate = localWorkDate();
-  const key = useMemo(() => storageKey(tenantId, idUser, workDate), [tenantId, idUser, workDate]);
-
-  const [record, setRecord] = useState(() => readRecord(key));
+  const [record, setRecord] = useState(null);
+  const [todayLoaded, setTodayLoaded] = useState(false);
   const [failure, setFailure] = useState(null);
   const [busy, setBusy] = useState(null);
   const [range, setRange] = useState({ startDate: daysAgo(7), endDate: workDate });
@@ -82,8 +62,27 @@ export default function Session() {
   const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
-    setRecord(readRecord(key));
-  }, [key]);
+    let cancelled = false;
+    setTodayLoaded(false);
+    setRecord(null);
+    getSessions({ tenantId, token, idUser, startDate: workDate, endDate: workDate })
+      .then((sessions) => {
+        if (cancelled) {
+          return;
+        }
+        setRecord(latestSession(sessions || []));
+        setTodayLoaded(true);
+      })
+      .catch((error) => {
+        if (cancelled) {
+          return;
+        }
+        setFailure(error);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [idUser, tenantId, token, workDate]);
 
   const loadHistory = useCallback(async () => {
     setHistoryFailure(null);
@@ -110,7 +109,6 @@ export default function Session() {
       setBusy(label);
       try {
         const next = await action({ tenantId, idUser, token });
-        writeRecord(key, next);
         setRecord(next);
         await loadHistory();
       } catch (error) {
@@ -119,7 +117,7 @@ export default function Session() {
         setBusy(null);
       }
     },
-    [idUser, key, loadHistory, tenantId, token],
+    [idUser, loadHistory, tenantId, token],
   );
 
   const status = statusOf(record);
@@ -161,7 +159,9 @@ export default function Session() {
           </Notice>
         ) : null}
 
-        {status === "none" ? (
+        {todayLoaded === false ? (
+          <p className="spinner">{t("common.loading")}</p>
+        ) : status === "none" ? (
           <p className="clock__empty">{t("session.none")}</p>
         ) : (
           <>
@@ -184,7 +184,7 @@ export default function Session() {
           </>
         )}
 
-        <div className="stack">
+        <div className="stack" hidden={todayLoaded === false}>
           {status === "open" ? (
             <button
               type="button"

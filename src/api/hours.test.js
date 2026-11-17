@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { clockMinutes, dailyHours, formatDuration, formatHours, sessionMinutes, tableTotals } from "./hours.js";
+import {
+  clockMinutes,
+  dailyHours,
+  formatDuration,
+  formatHours,
+  latestSession,
+  sessionMinutes,
+  tableTotals,
+} from "./hours.js";
 
 function session(id, workDate, open, close) {
   return {
@@ -144,5 +152,20 @@ describe("formatHours", () => {
   it("renders nothing for a missing value", () => {
     expect(formatHours(null)).toBe("");
     expect(formatHours(undefined)).toBe("");
+  });
+});
+
+describe("latestSession", () => {
+  it("picks the session with the highest id, whatever the order", () => {
+    const sessions = [
+      session(7, "2026-11-17", "08:00", "12:00"),
+      session(9, "2026-11-17", "13:00", null),
+      session(8, "2026-11-17", "12:30", "12:45"),
+    ];
+    expect(latestSession(sessions).id).toBe(9);
+  });
+
+  it("returns null when nothing was reported today", () => {
+    expect(latestSession([])).toBeNull();
   });
 });
